@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AntiVir: A Database of Antiviral Plants</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * {
       margin: 0;
@@ -73,12 +74,20 @@
 
     .logo-area {
       background: #f5e6d3;
-      padding: 20px 30px;
-      min-width: 200px;
-      text-align: center;
+      padding: 10px;
+      min-width: 180px;
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       border: 1px solid #ddd;
-      font-weight: bold;
-      color: #666;
+      overflow: hidden;
+    }
+
+    .logo-area img {
+      max-width: 100%;
+      max-height: 90px;
+      object-fit: contain;
     }
 
     .header-banner {
@@ -371,6 +380,35 @@
       text-align: right;
     }
 
+    .chart-container {
+      background: #e6f3ff;
+      padding: 25px;
+      margin: 25px 0;
+      border-radius: 8px;
+      border: 1px solid #b3d9ff;
+    }
+
+    .chart-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #6a1b9a;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .chart-row {
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .chart-wrapper {
+      flex: 1;
+      min-width: 300px;
+      max-width: 450px;
+    }
+
     /* Footer */
     .footer {
       background: #f5e6d3;
@@ -415,7 +453,7 @@
   <div class="header-container">
     <div class="header-top">
       <div class="logo-area">
-        AntiVir Logo
+        <img src="assets/virus-logo.png" alt="Virus structure visualization">
       </div>
       <div class="header-banner">
         <h1>AntiVir: A Database for Antiviral Plants</h1>
@@ -628,24 +666,55 @@
             </div>
           </div>
 
-          <h3>Distribution by Plant Family</h3>
-          <ul style="line-height: 2;">
-            <li><strong>Asteraceae:</strong> 2 species</li>
-            <li><strong>Lamiaceae:</strong> 3 species</li>
-            <li><strong>Zingiberaceae:</strong> 2 species</li>
-            <li><strong>Fabaceae:</strong> 1 species</li>
-            <li><strong>Meliaceae:</strong> 1 species</li>
-            <li><strong>And more...</strong></li>
-          </ul>
+          <!-- Plant Families Pie Chart -->
+          <div class="chart-container">
+            <div class="chart-title">Plant Families Distribution</div>
+            <div class="chart-row">
+              <div class="chart-wrapper">
+                <canvas id="plantFamilyPieChart"></canvas>
+              </div>
+            </div>
+          </div>
 
-          <h3>Distribution by Virus Family</h3>
-          <ul style="line-height: 2;">
-            <li><strong>Flaviviridae:</strong> 10 entries</li>
-            <li><strong>Herpesviridae:</strong> 4 entries</li>
-            <li><strong>Picornaviridae:</strong> 3 entries</li>
-            <li><strong>Orthomyxoviridae:</strong> 2 entries</li>
-            <li><strong>Hepadnaviridae:</strong> 1 entry</li>
-          </ul>
+          <!-- Virus Families Pie Chart -->
+          <div class="chart-container">
+            <div class="chart-title">Virus Families Distribution</div>
+            <div class="chart-row">
+              <div class="chart-wrapper">
+                <canvas id="virusFamilyPieChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Extracts Pie Chart -->
+          <div class="chart-container">
+            <div class="chart-title">Distribution of Active Extracts</div>
+            <div class="chart-row">
+              <div class="chart-wrapper">
+                <canvas id="extractsPieChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Compounds Bar Chart -->
+          <div class="chart-container">
+            <div class="chart-title">Top Active Compounds (Bar Chart)</div>
+            <div class="chart-row">
+              <div class="chart-wrapper">
+                <canvas id="compoundsBarChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Virus Distribution Bar Chart -->
+          <div class="chart-container">
+            <div class="chart-title">Virus Distribution (Bar Chart)</div>
+            <div class="chart-row">
+              <div class="chart-wrapper">
+                <canvas id="virusBarChart"></canvas>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Browse Section -->
@@ -917,13 +986,28 @@
     window.addEventListener('DOMContentLoaded', function() {
       const plantCount = new Set();
       const virusCount = new Set();
+      const plantFamilyCount = {};
+      const virusFamilyCount = {};
+      const extractCount = {};
+      const compoundCount = {};
+      const virusCountMap = {};
       const rows = document.querySelectorAll('#tableBody tr');
       
       rows.forEach(row => {
         const cells = row.querySelectorAll('td');
-        if (cells.length > 0) {
+        if (cells.length >= 6) {
           plantCount.add(cells[0].textContent.trim());
           virusCount.add(cells[2].textContent.trim());
+          const pf = cells[1].textContent.trim();
+          const vf = cells[3].textContent.trim();
+          const ext = cells[4].textContent.trim();
+          const comp = cells[5].textContent.trim();
+          const virus = cells[2].textContent.trim();
+          plantFamilyCount[pf] = (plantFamilyCount[pf] || 0) + 1;
+          virusFamilyCount[vf] = (virusFamilyCount[vf] || 0) + 1;
+          extractCount[ext] = (extractCount[ext] || 0) + 1;
+          compoundCount[comp] = (compoundCount[comp] || 0) + 1;
+          virusCountMap[virus] = (virusCountMap[virus] || 0) + 1;
         }
       });
 
@@ -931,7 +1015,97 @@
       document.getElementById('virusCount').textContent = virusCount.size;
       document.getElementById('statPlantCount').textContent = plantCount.size;
       document.getElementById('statVirusCount').textContent = virusCount.size;
+
+      // Initialize charts
+      initCharts(plantFamilyCount, virusFamilyCount, extractCount, compoundCount, virusCountMap);
     });
+
+    function initCharts(plantFamilyCount, virusFamilyCount, extractCount, compoundCount, virusCountMap) {
+      const colors = ['#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF','#FF9F40','#8B008B','#32CD32','#DC143C','#20B2AA'];
+
+      // Plant Families Pie Chart
+      new Chart(document.getElementById('plantFamilyPieChart'), {
+        type: 'pie',
+        data: {
+          labels: Object.keys(plantFamilyCount),
+          datasets: [{
+            data: Object.values(plantFamilyCount),
+            backgroundColor: colors.slice(0, Object.keys(plantFamilyCount).length)
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'right' } } }
+      });
+
+      // Virus Families Pie Chart
+      new Chart(document.getElementById('virusFamilyPieChart'), {
+        type: 'pie',
+        data: {
+          labels: Object.keys(virusFamilyCount),
+          datasets: [{
+            data: Object.values(virusFamilyCount),
+            backgroundColor: colors.slice(0, Object.keys(virusFamilyCount).length)
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'right' } } }
+      });
+
+      // Active Extracts Pie Chart
+      new Chart(document.getElementById('extractsPieChart'), {
+        type: 'pie',
+        data: {
+          labels: Object.keys(extractCount),
+          datasets: [{
+            data: Object.values(extractCount),
+            backgroundColor: ['#8B008B','#FF69B4','#32CD32','#87CEEB','#9ACD32','#DAA520','#DC143C','#228B22']
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'right' } } }
+      });
+
+      // Active Compounds Bar Chart
+      const sortedCompounds = Object.entries(compoundCount).sort((a,b) => b[1]-a[1]).slice(0, 10);
+      new Chart(document.getElementById('compoundsBarChart'), {
+        type: 'bar',
+        data: {
+          labels: sortedCompounds.map(c => c[0]),
+          datasets: [{
+            label: 'Count',
+            data: sortedCompounds.map(c => c[1]),
+            backgroundColor: '#0a8f5a',
+            borderColor: '#066d44',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          indexAxis: 'y',
+          plugins: { legend: { display: false } },
+          scales: { x: { beginAtZero: true } }
+        }
+      });
+
+      // Virus Distribution Bar Chart
+      const sortedViruses = Object.entries(virusCountMap).sort((a,b) => b[1]-a[1]);
+      new Chart(document.getElementById('virusBarChart'), {
+        type: 'bar',
+        data: {
+          labels: sortedViruses.map(v => v[0]),
+          datasets: [{
+            label: 'Count',
+            data: sortedViruses.map(v => v[1]),
+            backgroundColor: '#36A2EB',
+            borderColor: '#1E88E5',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          indexAxis: 'y',
+          plugins: { legend: { display: false } },
+          scales: { x: { beginAtZero: true } }
+        }
+      });
+    }
   </script>
 
 </body>
