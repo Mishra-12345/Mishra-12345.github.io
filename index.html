@@ -392,8 +392,30 @@
       font-size: 20px;
       font-weight: bold;
       color: #6a1b9a;
+      margin-bottom: 10px;
+      text-align: center;
+      text-decoration: underline;
+    }
+
+    .chart-subtitle {
+      font-size: 14px;
+      color: #c62828;
       margin-bottom: 20px;
       text-align: center;
+    }
+
+    .chart-description {
+      margin-top: 20px;
+      padding: 15px;
+      background: #fff;
+      border-left: 4px solid #c62828;
+      color: #c62828;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .chart-description strong {
+      text-transform: uppercase;
     }
 
     .chart-row {
@@ -666,9 +688,46 @@
             </div>
           </div>
 
-          <!-- Plant Families Pie Chart -->
+          <!-- Distribution of Virus -->
           <div class="chart-container">
-            <div class="chart-title">Plant Families Distribution</div>
+            <div class="chart-title">Distribution of Virus</div>
+            <div class="chart-row">
+              <div class="chart-wrapper">
+                <canvas id="virusPieChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Distribution of active extracts -->
+          <div class="chart-container">
+            <div class="chart-title">Distribution of active extracts</div>
+            <div class="chart-row">
+              <div class="chart-wrapper">
+                <canvas id="extractsPieChart"></canvas>
+              </div>
+            </div>
+            <div class="chart-description">
+              Since the antiviral property of plants is mainly due to active, hence we thought of including them as well in our database. In depth analysis of active compounds present in medicinal plants revealed that <strong>CRUDE EXTRACT</strong> consisting of either ethanol, methanol or aqueous extract possessed antiviral activity.
+            </div>
+          </div>
+
+          <!-- Distribution of active compounds -->
+          <div class="chart-container">
+            <div class="chart-title">Distribution of active compounds</div>
+            <div class="chart-row">
+              <div class="chart-wrapper">
+                <canvas id="compoundsPieChart"></canvas>
+              </div>
+            </div>
+            <div class="chart-description">
+              Sorting on the active compound revealed that there were numerous naturally acting compounds that possessed antiviral activity. Interestingly, there were some compounds which had the potential to inhibit diverse viruses suggesting their potential candidature into drug development.
+            </div>
+          </div>
+
+          <!-- Family Count -->
+          <div class="chart-container">
+            <div class="chart-title">Family Count</div>
+            <div class="chart-subtitle">Distribution of family on the basis of their inhibitory activity against viruses</div>
             <div class="chart-row">
               <div class="chart-wrapper">
                 <canvas id="plantFamilyPieChart"></canvas>
@@ -682,36 +741,6 @@
             <div class="chart-row">
               <div class="chart-wrapper">
                 <canvas id="virusFamilyPieChart"></canvas>
-              </div>
-            </div>
-          </div>
-
-          <!-- Active Extracts Pie Chart -->
-          <div class="chart-container">
-            <div class="chart-title">Distribution of Active Extracts</div>
-            <div class="chart-row">
-              <div class="chart-wrapper">
-                <canvas id="extractsPieChart"></canvas>
-              </div>
-            </div>
-          </div>
-
-          <!-- Active Compounds Bar Chart -->
-          <div class="chart-container">
-            <div class="chart-title">Top Active Compounds (Bar Chart)</div>
-            <div class="chart-row">
-              <div class="chart-wrapper">
-                <canvas id="compoundsBarChart"></canvas>
-              </div>
-            </div>
-          </div>
-
-          <!-- Virus Distribution Bar Chart -->
-          <div class="chart-container">
-            <div class="chart-title">Virus Distribution (Bar Chart)</div>
-            <div class="chart-row">
-              <div class="chart-wrapper">
-                <canvas id="virusBarChart"></canvas>
               </div>
             </div>
           </div>
@@ -1021,89 +1050,76 @@
     });
 
     function initCharts(plantFamilyCount, virusFamilyCount, extractCount, compoundCount, virusCountMap) {
-      const colors = ['#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF','#FF9F40','#8B008B','#32CD32','#DC143C','#20B2AA'];
+      const colors = ['#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF','#FF9F40','#8B008B','#32CD32','#DC143C','#20B2AA','#1E3A8A','#D97706','#10B981','#059669','#047857'];
 
-      // Plant Families Pie Chart
+      // Distribution of Virus (Pie)
+      const virusLabels = Object.keys(virusCountMap);
+      new Chart(document.getElementById('virusPieChart'), {
+        type: 'pie',
+        data: {
+          labels: virusLabels,
+          datasets: [{
+            data: Object.values(virusCountMap),
+            backgroundColor: colors.slice(0, virusLabels.length)
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'right' } } }
+      });
+
+      // Distribution of active extracts (Pie)
+      const extractLabels = Object.keys(extractCount);
+      new Chart(document.getElementById('extractsPieChart'), {
+        type: 'pie',
+        data: {
+          labels: extractLabels,
+          datasets: [{
+            data: Object.values(extractCount),
+            backgroundColor: ['#8B008B','#FF69B4','#32CD32','#87CEEB','#9ACD32','#DAA520','#DC143C','#228B22','#20B2AA','#D3D3D3']
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'right' } } }
+      });
+
+      // Distribution of active compounds (Pie)
+      const compoundLabels = Object.keys(compoundCount);
+      new Chart(document.getElementById('compoundsPieChart'), {
+        type: 'pie',
+        data: {
+          labels: compoundLabels,
+          datasets: [{
+            data: Object.values(compoundCount),
+            backgroundColor: colors.slice(0, compoundLabels.length)
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'right' } } }
+      });
+
+      // Family Count (Plant Families Pie Chart)
+      const familyLabels = Object.keys(plantFamilyCount);
       new Chart(document.getElementById('plantFamilyPieChart'), {
         type: 'pie',
         data: {
-          labels: Object.keys(plantFamilyCount),
+          labels: familyLabels,
           datasets: [{
             data: Object.values(plantFamilyCount),
-            backgroundColor: colors.slice(0, Object.keys(plantFamilyCount).length)
+            backgroundColor: colors.slice(0, familyLabels.length)
           }]
         },
         options: { responsive: true, plugins: { legend: { position: 'right' } } }
       });
 
       // Virus Families Pie Chart
+      const vfLabels = Object.keys(virusFamilyCount);
       new Chart(document.getElementById('virusFamilyPieChart'), {
         type: 'pie',
         data: {
-          labels: Object.keys(virusFamilyCount),
+          labels: vfLabels,
           datasets: [{
             data: Object.values(virusFamilyCount),
-            backgroundColor: colors.slice(0, Object.keys(virusFamilyCount).length)
+            backgroundColor: colors.slice(0, vfLabels.length)
           }]
         },
         options: { responsive: true, plugins: { legend: { position: 'right' } } }
-      });
-
-      // Active Extracts Pie Chart
-      new Chart(document.getElementById('extractsPieChart'), {
-        type: 'pie',
-        data: {
-          labels: Object.keys(extractCount),
-          datasets: [{
-            data: Object.values(extractCount),
-            backgroundColor: ['#8B008B','#FF69B4','#32CD32','#87CEEB','#9ACD32','#DAA520','#DC143C','#228B22']
-          }]
-        },
-        options: { responsive: true, plugins: { legend: { position: 'right' } } }
-      });
-
-      // Active Compounds Bar Chart
-      const sortedCompounds = Object.entries(compoundCount).sort((a,b) => b[1]-a[1]).slice(0, 10);
-      new Chart(document.getElementById('compoundsBarChart'), {
-        type: 'bar',
-        data: {
-          labels: sortedCompounds.map(c => c[0]),
-          datasets: [{
-            label: 'Count',
-            data: sortedCompounds.map(c => c[1]),
-            backgroundColor: '#0a8f5a',
-            borderColor: '#066d44',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          indexAxis: 'y',
-          plugins: { legend: { display: false } },
-          scales: { x: { beginAtZero: true } }
-        }
-      });
-
-      // Virus Distribution Bar Chart
-      const sortedViruses = Object.entries(virusCountMap).sort((a,b) => b[1]-a[1]);
-      new Chart(document.getElementById('virusBarChart'), {
-        type: 'bar',
-        data: {
-          labels: sortedViruses.map(v => v[0]),
-          datasets: [{
-            label: 'Count',
-            data: sortedViruses.map(v => v[1]),
-            backgroundColor: '#36A2EB',
-            borderColor: '#1E88E5',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          indexAxis: 'y',
-          plugins: { legend: { display: false } },
-          scales: { x: { beginAtZero: true } }
-        }
       });
     }
   </script>
