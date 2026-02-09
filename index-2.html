@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AntiVir: A Database of Antiviral Plants</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    /* Top Utility Bar */
+    .utility-bar {
+      background: #e8e8e8;
+      padding: 8px 20px;
+      text-align: right;
+      font-size: 12px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .utility-bar a {
+      color: #0066cc;
+      text-decoration: none;
+      margin: 0 10px;
+    }
+
+    .utility-bar a:hover {
+      text-decoration: underline;
+    }
+
+    .utility-search {
+      display: inline-block;
+      margin-left: 15px;
+    }
+
+    .utility-search input {
+      padding: 3px 5px;
+      font-size: 12px;
+      border: 1px solid #999;
+    }
+
+    .utility-search button {
+      padding: 3px 10px;
+      font-size: 12px;
+      background: #0066cc;
+      color: white;
+      border: 1px solid #0066cc;
+      cursor: pointer;
+    }
+
+    /* Header Section */
+    .header-container {
+      background: #fff;
+      padding: 20px;
+      border-bottom: 2px solid #ddd;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 15px;
+    }
+
+    .logo-area {
+      background: #f5e6d3;
+      padding: 10px;
+      min-width: 180px;
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #ddd;
+      overflow: hidden;
+    }
+
+    .logo-area img {
+      max-width: 100%;
+      max-height: 90px;
+      object-fit: contain;
+    }
+
+    .header-banner {
+      background: #fff9e6;
+      padding: 30px 40px;
+      flex: 1;
+      margin-left: 20px;
+      border: 1px solid #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-banner h1 {
+      color: #1b5e20;
+      font-size: 28px;
+      margin: 0;
+    }
+
+    .header-plants {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .header-plants img {
+      max-width: 120px;
+      height: auto;
+      border-radius: 5px;
+      border: 2px solid #ddd;
+    }
+
+    /* Sub-navigation */
+    .sub-nav {
+      background: #b3d9ff;
+      padding: 10px 20px;
+      border-top: 1px solid #99ccff;
+    }
+
+    .sub-nav a {
+      color: #003366;
+      text-decoration: none;
+      margin-right: 20px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .sub-nav a:hover {
+      text-decoration: underline;
+    }
+
+    /* Main Navigation Tabs */
+    .main-nav {
+      background: #b3d9ff;
+      padding: 0;
+      border-bottom: 2px solid #0066cc;
+    }
+
+    .nav-tabs {
+      display: flex;
+      padding: 0 20px;
+    }
+
+    .nav-tab {
+      background: #e6f2ff;
+      padding: 12px 25px;
+      margin-right: 2px;
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
+      cursor: pointer;
+      text-decoration: none;
+      color: #003366;
+      font-weight: bold;
+      font-size: 14px;
+      border-top: 2px solid #e6f2ff;
+      border-left: 2px solid #e6f2ff;
+      border-right: 2px solid #e6f2ff;
+      transition: all 0.3s;
+    }
+
+    .nav-tab:hover {
+      background: #cce6ff;
+    }
+
+    .nav-tab.active {
+      background: #b3d9ff;
+      border-top: 2px solid #0066cc;
+      border-left: 2px solid #0066cc;
+      border-right: 2px solid #0066cc;
+      border-bottom: 2px solid #b3d9ff;
+      margin-bottom: -2px;
+    }
+
+    /* Breadcrumb */
+    .breadcrumb {
+      background: #fff;
+      padding: 8px 20px;
+      border-bottom: 1px solid #ddd;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .breadcrumb a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+
+    /* Main Content Area */
+    .main-container {
+      display: flex;
+      background: #fff;
+      min-height: 600px;
+    }
+
+    /* Left Sidebar */
+    .left-sidebar {
+      background: #b3d9ff;
+      width: 200px;
+      padding: 20px 0;
+      border-right: 2px solid #0066cc;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+    }
+
+    .sidebar-menu li {
+      padding: 10px 20px;
+      border-bottom: 1px solid #99ccff;
+    }
+
+    .sidebar-menu a {
+      color: #003366;
+      text-decoration: none;
+      font-size: 14px;
+      display: block;
+    }
+
+    .sidebar-menu a:hover {
+      background: #cce6ff;
+      margin-left: 5px;
+      transition: margin 0.2s;
+    }
+
+    /* Content Columns */
+    .content-columns {
+      display: flex;
+      flex: 1;
+      padding: 20px;
+    }
+
+    .left-scan-column {
+      width: 150px;
+      padding: 0 15px;
+      color: #999;
+      font-size: 12px;
+      font-style: italic;
+    }
+
+    .main-content-column {
+      flex: 1;
+      padding: 0 20px;
+      min-width: 400px;
+    }
+
+    .right-scan-column {
+      width: 150px;
+      padding: 0 15px;
+      color: #999;
+      font-size: 12px;
+      font-style: italic;
+    }
+
+    /* Content Sections */
+    .content-section {
+      display: none;
+    }
+
+    .content-section.active {
+      display: block;
+    }
+
+    .content-section h2 {
+      color: #1b5e20;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+
+    .content-section h3 {
+      color: #2e7d32;
+      margin-top: 25px;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+
+    .stats-container {
+      display: flex;
+      gap: 30px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+
+    .stat-box {
+      background: #f0f8f0;
+      padding: 25px;
+      min-width: 200px;
+      text-align: center;
+      border-radius: 8px;
+      border: 2px solid #b6e2c1;
+    }
+
+    .stat-box h3 {
+      font-size: 36px;
+      color: #2e7d32;
+      margin: 0;
+    }
+
+    .stat-box p {
+      margin-top: 10px;
+      color: #666;
+    }
+
+    .plant-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .plant-card {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 5px;
+      border-left: 4px solid #0a8f5a;
+    }
+
+    .plant-card strong {
+      color: #1b5e20;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 2px solid #b6e2c1;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1000px;
+    }
+
+    th {
+      background-color: #0a8f5a;
+      color: white;
+      padding: 12px 8px;
+      text-align: left;
+      font-weight: bold;
+    }
+
+    td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    tr:hover {
+      background-color: #f0f8f0;
+    }
+
+    .last-revised {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #ddd;
+      font-size: 12px;
+      color: #999;
+      text-align: right;
+    }
+
+    .chart-container {
+      background: #e6f3ff;
+      padding: 25px;
+      margin: 25px 0;
+      border-radius: 8px;
+      border: 1px solid #b3d9ff;
+    }
+
+    .chart-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #6a1b9a;
+      margin-bottom: 10px;
+      text-align: center;
+      text-decoration: underline;
+    }
+
+    .chart-subtitle {
+      font-size: 14px;
+      color: #c62828;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .chart-description {
+      margin-top: 20px;
+      padding: 15px;
+      background: #fff;
+      border-left: 4px solid #c62828;
+      color: #c62828;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .chart-description strong {
+      text-transform: uppercase;
+    }
+
+    .chart-row {
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .chart-wrapper {
+      flex: 1;
+      min-width: 300px;
+      max-width: 450px;
+    }
+
+    /* Footer */
+    .footer {
+      background: #f5e6d3;
+      padding: 20px;
+      border-top: 2px solid #ddd;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .footer p {
+      margin: 5px 0;
+    }
+
+    .footer a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Top Utility Bar -->
+  <div class="utility-bar">
+    <a href="#">Calendar</a>
+    <a href="#">A-Z Index</a>
+    <div class="utility-search">
+      <input type="text" placeholder="Search this site">
+      <button>Go</button>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="header-container">
+    <div class="header-top">
+      <div class="logo-area">
+        <img src="assets/virus-logo.png" alt="Virus structure visualization">
+      </div>
+      <div class="header-banner">
+        <h1>AntiVir: A Database for Antiviral Plants</h1>
+        <div class="header-plants">
+          <img src="assets/plant1.png" alt="Medicinal plant">
+          <img src="assets/plant2.png" alt="Plant leaf">
+        </div>
+      </div>
+    </div>
+    <div class="sub-nav">
+      <a href="#">About</a>
+      <a href="#">Research</a>
+      <a href="#">Publications</a>
+      <a href="#">Contact us</a>
+    </div>
+  </div>
+
+  <!-- Main Navigation Tabs -->
+  <div class="main-nav">
+    <div class="nav-tabs">
+      <a href="#" class="nav-tab active" onclick="showSection('home'); return false;">Home</a>
+      <a href="#" class="nav-tab" onclick="showSection('basic-search'); return false;">Basic Search</a>
+      <a href="#" class="nav-tab" onclick="showSection('statistics'); return false;">Statistics</a>
+      <a href="#" class="nav-tab" onclick="showSection('browse'); return false;">Browse</a>
+    </div>
+    <div class="breadcrumb">
+      <a href="#">Home page</a> | <a href="#">Section menu</a> | <a href="#">Submenu</a>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="main-container">
+    <!-- Left Sidebar -->
+    <div class="left-sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="#" onclick="showSection('home'); return false;">Home page of site</a></li>
+        <li><a href="#" onclick="showSection('basic-search'); return false;">Basic Search</a></li>
+        <li><a href="#" onclick="showSection('statistics'); return false;">Statistics</a></li>
+        <li><a href="#" onclick="showSection('browse'); return false;">Browse Database</a></li>
+        <li><a href="#">Virus Families</a></li>
+        <li><a href="#">Plant Families</a></li>
+        <li><a href="#">Research Methods</a></li>
+        <li><a href="#">Publications</a></li>
+      </ul>
+    </div>
+
+    <!-- Content Columns -->
+    <div class="content-columns">
+      <div class="left-scan-column">
+        Left scan column (optional)
+      </div>
+
+      <div class="main-content-column">
+        <!-- Home Section -->
+        <div id="home" class="content-section active">
+          <h2>Welcome to AntiVir Database</h2>
+          <p>AntiVir is a manually curated database of antiviral plants that compiles comprehensive information on plant species, their taxonomic families, associated phytochemicals, and virus-specific antiviral activity.</p>
+          
+          <p>The database integrates experimentally reported antiviral evidence to provide structured, searchable, and statistically summarized data for plant-based antiviral research.</p>
+
+          <div class="stats-container">
+            <div class="stat-box">
+              <h3 id="plantCount">20</h3>
+              <p>Antiviral Plant Species</p>
+            </div>
+            <div class="stat-box">
+              <h3 id="virusCount">8</h3>
+              <p>Viruses Documented</p>
+            </div>
+            <div class="stat-box">
+              <h3>15+</h3>
+              <p>Plant Families</p>
+            </div>
+          </div>
+
+          <h3>Featured Plants</h3>
+          <div class="plant-grid">
+            <div class="plant-card">
+              <strong>Allium sativum</strong>
+              <span style="color: #666;">Family: Amaryllidaceae</span>
+            </div>
+            <div class="plant-card">
+              <strong>Curcuma longa</strong>
+              <span style="color: #666;">Family: Zingiberaceae</span>
+            </div>
+            <div class="plant-card">
+              <strong>Azadirachta indica</strong>
+              <span style="color: #666;">Family: Meliaceae</span>
+            </div>
+            <div class="plant-card">
+              <strong>Echinacea purpurea</strong>
+              <span style="color: #666;">Family: Asteraceae</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Basic Search Section -->
+        <div id="basic-search" class="content-section">
+          <h2>Basic Search</h2>
+          <p>Select a plant to view detailed antiviral information.</p>
+
+          <div style="margin:20px 0;">
+            <label for="plantDropdown"><strong>Select a Plant:</strong></label><br><br>
+            <select id="plantDropdown" style="padding:10px; width:350px;">
+              <option value="">Loading plants...</option>
+            </select>
+          </div>
+
+          <div id="plantDetails" style="margin-top:25px; background:#f0f8f0; padding:20px; border-radius:6px; border-left:4px solid #0a8f5a;">
+            <h3>Plant Details</h3>
+            <div id="details">Please select a plant.</div>
+          </div>
+        </div>
+
+
+        <!-- Statistics Section -->
+        <div id="statistics" class="content-section">
+          <h2>Statistics</h2>
+          <p>Comprehensive statistics about the AntiVir database.</p>
+
+          <div class="stats-container">
+            <div class="stat-box">
+              <h3 id="statPlantCount">20</h3>
+              <p>Unique Plant Species</p>
+            </div>
+            <div class="stat-box">
+              <h3 id="statVirusCount">8</h3>
+              <p>Virus Types</p>
+            </div>
+            <div class="stat-box">
+              <h3>15+</h3>
+              <p>Plant Families</p>
+            </div>
+            <div class="stat-box">
+              <h3>8</h3>
+              <p>Virus Families</p>
+            </div>
+          </div>
+
+          <!-- Distribution of Virus -->
+          <div class="chart-container">
+            <div class="chart-title">Distribution of Virus</div>
+            <div class="chart-row">
+              <div class="chart-wrapper">
+                <canvas id="virusPieChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Distribution of active extracts -->
+          <div class="chart-container">
+            <div class="chart-title">Distribution of active extracts</div>
+            <div class="chart-row">
+              <div class="chart-wrapper">
+                <canvas id="extractsPieChart"></canvas>
+              </div>
+            </div>
+            <div class="chart-description">
+              Since the antiviral property of plants is mainly due to active, hence we thought of including them as well in our database. In depth analysis of active compounds present in medicinal plants revealed that <strong>CRUDE EXTRACT</strong> consisting of either ethanol, methanol or aqueous extract possessed antiviral activity.
+            </div>
+          </div>
+
+          <!-- Distribution of active compounds -->
+          <div class="chart-container">
+            <div class="chart-title">Distribution of active compounds</div>
+            <div class="chart-row">
+              <div class="chart-wrapper">
+                <canvas id="compoundsPieChart"></canvas>
+              </div>
+            </div>
+            <div class="chart-description">
+              Sorting on the active compound revealed that there were numerous naturally acting compounds that possessed antiviral activity. Interestingly, there were some compounds which had the potential to inhibit diverse viruses suggesting their potential candidature into drug development.
+            </div>
+          </div>
+
+          <!-- Family Count -->
+          <div class="chart-container">
+            <div class="chart-title">Family Count</div>
+            <div class="chart-subtitle">Distribution of family on the basis of their inhibitory activity against viruses</div>
+            <div class="chart-row">
+              <div class="chart-wrapper">
+                <canvas id="plantFamilyPieChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Virus Families Pie Chart -->
+          <div class="chart-container">
+            <div class="chart-title">Virus Families Distribution</div>
+            <div class="chart-row">
+              <div class="chart-wrapper">
+                <canvas id="virusFamilyPieChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Browse Section -->
+        <div id="browse" class="content-section">
+          <h2>Browse Database</h2>
+          <p>Browse the complete antiviral plant database with all entries.</p>
+
+          <input type="text" class="search-box" id="browseSearchInput" placeholder="Search database..." onkeyup="searchTable()">
+
+          <div class="table-wrapper">
+            <table id="dataTable">
+              <thead>
+                <tr>
+                  <th>Plant Name</th>
+                  <th>Plant Family</th>
+                  <th>Virus</th>
+                  <th>Virus Family</th>
+                  <th>Extract</th>
+                  <th>Active Compound</th>
+                  <th>Author</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody">
+                <tr>
+                  <td>Allium sativum</td>
+                  <td>Amaryllidaceae</td>
+                  <td>Dengue virus</td>
+                  <td>Flaviviridae</td>
+                  <td>Methanol extract</td>
+                  <td>Allicin</td>
+                  <td>Smith et al.</td>
+                </tr>
+                <tr>
+                  <td>Curcuma longa</td>
+                  <td>Zingiberaceae</td>
+                  <td>Hepatitis C virus</td>
+                  <td>Flaviviridae</td>
+                  <td>Ethanol extract</td>
+                  <td>Curcumin</td>
+                  <td>Johnson et al.</td>
+                </tr>
+                <tr>
+                  <td>Azadirachta indica</td>
+                  <td>Meliaceae</td>
+                  <td>Herpes simplex virus</td>
+                  <td>Herpesviridae</td>
+                  <td>Aqueous extract</td>
+                  <td>Azadirachtin</td>
+                  <td>Williams et al.</td>
+                </tr>
+                <tr>
+                  <td>Echinacea purpurea</td>
+                  <td>Asteraceae</td>
+                  <td>Influenza A virus</td>
+                  <td>Orthomyxoviridae</td>
+                  <td>Methanol extract</td>
+                  <td>Echinacoside</td>
+                  <td>Brown et al.</td>
+                </tr>
+                <tr>
+                  <td>Glycyrrhiza glabra</td>
+                  <td>Fabaceae</td>
+                  <td>Dengue virus</td>
+                  <td>Flaviviridae</td>
+                  <td>Water extract</td>
+                  <td>Glycyrrhizin</td>
+                  <td>Davis et al.</td>
+                </tr>
+                <tr>
+                  <td>Ocimum sanctum</td>
+                  <td>Lamiaceae</td>
+                  <td>Coxsackievirus</td>
+                  <td>Picornaviridae</td>
+                  <td>Ethanol extract</td>
+                  <td>Ursolic acid</td>
+                  <td>Miller et al.</td>
+                </tr>
+                <tr>
+                  <td>Andrographis paniculata</td>
+                  <td>Acanthaceae</td>
+                  <td>Chikungunya virus</td>
+                  <td>Flaviviridae</td>
+                  <td>Methanol extract</td>
+                  <td>Andrographolide</td>
+                  <td>Wilson et al.</td>
+                </tr>
+                <tr>
+                  <td>Hypericum perforatum</td>
+                  <td>Hypericaceae</td>
+                  <td>Hepatitis C virus</td>
+                  <td>Flaviviridae</td>
+                  <td>Methanol extract</td>
+                  <td>Hypericin</td>
+                  <td>Moore et al.</td>
+                </tr>
+                <tr>
+                  <td>Camellia sinensis</td>
+                  <td>Theaceae</td>
+                  <td>Dengue virus</td>
+                  <td>Flaviviridae</td>
+                  <td>Water extract</td>
+                  <td>Epigallocatechin gallate</td>
+                  <td>Taylor et al.</td>
+                </tr>
+                <tr>
+                  <td>Vitex negundo</td>
+                  <td>Lamiaceae</td>
+                  <td>Herpes simplex virus</td>
+                  <td>Herpesviridae</td>
+                  <td>Ethanol extract</td>
+                  <td>Vitexin</td>
+                  <td>Anderson et al.</td>
+                </tr>
+                <tr>
+                  <td>Phyllanthus niruri</td>
+                  <td>Phyllanthaceae</td>
+                  <td>Hepatitis B virus</td>
+                  <td>Hepadnaviridae</td>
+                  <td>Aqueous extract</td>
+                  <td>Phyllanthin</td>
+                  <td>Thomas et al.</td>
+                </tr>
+                <tr>
+                  <td>Mentha piperita</td>
+                  <td>Lamiaceae</td>
+                  <td>Enterovirus</td>
+                  <td>Picornaviridae</td>
+                  <td>Essential oil</td>
+                  <td>Menthol</td>
+                  <td>Jackson et al.</td>
+                </tr>
+                <tr>
+                  <td>Zingiber officinale</td>
+                  <td>Zingiberaceae</td>
+                  <td>Influenza A virus</td>
+                  <td>Orthomyxoviridae</td>
+                  <td>Ethanol extract</td>
+                  <td>6-Gingerol</td>
+                  <td>White et al.</td>
+                </tr>
+                <tr>
+                  <td>Aloe vera</td>
+                  <td>Asphodelaceae</td>
+                  <td>Herpes simplex virus</td>
+                  <td>Herpesviridae</td>
+                  <td>Gel extract</td>
+                  <td>Acemannan</td>
+                  <td>Harris et al.</td>
+                </tr>
+                <tr>
+                  <td>Eucalyptus globulus</td>
+                  <td>Myrtaceae</td>
+                  <td>Dengue virus</td>
+                  <td>Flaviviridae</td>
+                  <td>Essential oil</td>
+                  <td>Eucalyptol</td>
+                  <td>Martin et al.</td>
+                </tr>
+                <tr>
+                  <td>Artemisia annua</td>
+                  <td>Asteraceae</td>
+                  <td>Dengue virus</td>
+                  <td>Flaviviridae</td>
+                  <td>Methanol extract</td>
+                  <td>Artemisinin</td>
+                  <td>Garcia et al.</td>
+                </tr>
+                <tr>
+                  <td>Terminalia chebula</td>
+                  <td>Combretaceae</td>
+                  <td>Poliovirus</td>
+                  <td>Picornaviridae</td>
+                  <td>Water extract</td>
+                  <td>Chebulagic acid</td>
+                  <td>Lee et al.</td>
+                </tr>
+                <tr>
+                  <td>Withania somnifera</td>
+                  <td>Solanaceae</td>
+                  <td>Chikungunya virus</td>
+                  <td>Flaviviridae</td>
+                  <td>Methanol extract</td>
+                  <td>Withaferin A</td>
+                  <td>Kim et al.</td>
+                </tr>
+                <tr>
+                  <td>Rheum palmatum</td>
+                  <td>Polygonaceae</td>
+                  <td>Varicella-zoster virus</td>
+                  <td>Herpesviridae</td>
+                  <td>Ethanol extract</td>
+                  <td>Emodin</td>
+                  <td>Park et al.</td>
+                </tr>
+                <tr>
+                  <td>Ginkgo biloba</td>
+                  <td>Ginkgoaceae</td>
+                  <td>Hepatitis C virus</td>
+                  <td>Flaviviridae</td>
+                  <td>Methanol extract</td>
+                  <td>Ginkgetin</td>
+                  <td>Chen et al.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="last-revised">
+          Last revised February 4, 2026. ↑
+        </div>
+      </div>
+
+      <div class="right-scan-column">
+        Right scan column (optional)
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-content">
+      <p><strong>AntiVir Database</strong>, Suite 300, Research Center, CT 06510-7003 USA</p>
+      <p>Copyright © 2026, AntiVir Database. All rights reserved.</p>
+      <p>Tel: 203.000.0000</p>
+      <p><a href="#">Contact us about this site.</a></p>
+    </div>
+  </div>
+
+  <script>
+    function showSection(sectionId) {
+      // Hide all sections
+      const sections = document.querySelectorAll('.content-section');
+      sections.forEach(section => {
+        section.classList.remove('active');
+      });
+
+      // Show selected section
+      document.getElementById(sectionId).classList.add('active');
+
+      // Update active tab
+      const tabs = document.querySelectorAll('.nav-tab');
+      tabs.forEach(tab => {
+        tab.classList.remove('active');
+      });
+      event.target.classList.add('active');
+    }
+
+    function searchTable() {
+      const input = document.getElementById('searchInput')?.value.toLowerCase() || 
+                    document.getElementById('browseSearchInput')?.value.toLowerCase() || '';
+      const rows = document.querySelectorAll('#tableBody tr');
+      const plantCards = document.querySelectorAll('.plant-card');
+
+      // Search in table
+      rows.forEach(row => {
+        const rowText = row.innerText.toLowerCase();
+        row.style.display = rowText.includes(input) ? '' : 'none';
+      });
+
+      // Search in plant cards
+      plantCards.forEach(card => {
+        const cardText = card.innerText.toLowerCase();
+        card.style.display = cardText.includes(input) ? '' : 'none';
+      });
+    }
+
+    // Update statistics on page load
+    window.addEventListener('DOMContentLoaded', function() {
+      const plantCount = new Set();
+      const virusCount = new Set();
+      const plantFamilyCount = {};
+      const virusFamilyCount = {};
+      const extractCount = {};
+      const compoundCount = {};
+      const virusCountMap = {};
+      const rows = document.querySelectorAll('#tableBody tr');
+      
+      rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 6) {
+          plantCount.add(cells[0].textContent.trim());
+          virusCount.add(cells[2].textContent.trim());
+          const pf = cells[1].textContent.trim();
+          const vf = cells[3].textContent.trim();
+          const ext = cells[4].textContent.trim();
+          const comp = cells[5].textContent.trim();
+          const virus = cells[2].textContent.trim();
+          plantFamilyCount[pf] = (plantFamilyCount[pf] || 0) + 1;
+          virusFamilyCount[vf] = (virusFamilyCount[vf] || 0) + 1;
+          extractCount[ext] = (extractCount[ext] || 0) + 1;
+          compoundCount[comp] = (compoundCount[comp] || 0) + 1;
+          virusCountMap[virus] = (virusCountMap[virus] || 0) + 1;
+        }
+      });
+
+      document.getElementById('plantCount').textContent = plantCount.size;
+      document.getElementById('virusCount').textContent = virusCount.size;
+      document.getElementById('statPlantCount').textContent = plantCount.size;
+      document.getElementById('statVirusCount').textContent = virusCount.size;
+
+      // Initialize charts
+      initCharts(plantFamilyCount, virusFamilyCount, extractCount, compoundCount, virusCountMap);
+    });
+
+    function initCharts(plantFamilyCount, virusFamilyCount, extractCount, compoundCount, virusCountMap) {
+      const colors = ['#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF','#FF9F40','#8B008B','#32CD32','#DC143C','#20B2AA','#1E3A8A','#D97706','#10B981','#059669','#047857'];
+
+      // Distribution of Virus (Pie)
+      const virusLabels = Object.keys(virusCountMap);
+      new Chart(document.getElementById('virusPieChart'), {
+        type: 'pie',
+        data: {
+          labels: virusLabels,
+          datasets: [{
+            data: Object.values(virusCountMap),
+            backgroundColor: colors.slice(0, virusLabels.length)
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'right' } } }
+      });
+
+      // Distribution of active extracts (Pie)
+      const extractLabels = Object.keys(extractCount);
+      new Chart(document.getElementById('extractsPieChart'), {
+        type: 'pie',
+        data: {
+          labels: extractLabels,
+          datasets: [{
+            data: Object.values(extractCount),
+            backgroundColor: ['#8B008B','#FF69B4','#32CD32','#87CEEB','#9ACD32','#DAA520','#DC143C','#228B22','#20B2AA','#D3D3D3']
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'right' } } }
+      });
+
+      // Distribution of active compounds (Pie)
+      const compoundLabels = Object.keys(compoundCount);
+      new Chart(document.getElementById('compoundsPieChart'), {
+        type: 'pie',
+        data: {
+          labels: compoundLabels,
+          datasets: [{
+            data: Object.values(compoundCount),
+            backgroundColor: colors.slice(0, compoundLabels.length)
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'right' } } }
+      });
+
+      // Family Count (Plant Families Pie Chart)
+      const familyLabels = Object.keys(plantFamilyCount);
+      new Chart(document.getElementById('plantFamilyPieChart'), {
+        type: 'pie',
+        data: {
+          labels: familyLabels,
+          datasets: [{
+            data: Object.values(plantFamilyCount),
+            backgroundColor: colors.slice(0, familyLabels.length)
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'right' } } }
+      });
+
+      // Virus Families Pie Chart
+      const vfLabels = Object.keys(virusFamilyCount);
+      new Chart(document.getElementById('virusFamilyPieChart'), {
+        type: 'pie',
+        data: {
+          labels: vfLabels,
+          datasets: [{
+            data: Object.values(virusFamilyCount),
+            backgroundColor: colors.slice(0, vfLabels.length)
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'right' } } }
+      });
+    }
+  </script>
+
+</body>
+
+
+<script>
+let plantMap = {};
+
+Papa.parse("data.csv", {
+  download: true,
+  header: true,
+  skipEmptyLines: true,
+  complete: function(results) {
+    const data = results.data;
+
+    data.forEach(row => {
+      const plantName = row["Name of Plant"];
+      if (!plantName) return;
+
+      if (!plantMap[plantName]) {
+        plantMap[plantName] = [];
+      }
+
+      plantMap[plantName].push(row);
+    });
+
+    populateDropdown();
+  }
+});
+
+function populateDropdown() {
+  const dropdown = document.getElementById("plantDropdown");
+  dropdown.innerHTML = '<option value="">-- Select a Plant --</option>';
+
+  Object.keys(plantMap).sort().forEach(plant => {
+    const option = document.createElement("option");
+    option.value = plant;
+    option.textContent = plant;
+    dropdown.appendChild(option);
+  });
+}
+
+document.getElementById("plantDropdown").addEventListener("change", function() {
+  const selectedPlant = this.value;
+  const detailsDiv = document.getElementById("details");
+
+  if (!selectedPlant || !plantMap[selectedPlant]) {
+    detailsDiv.innerHTML = "Please select a plant.";
+    return;
+  }
+
+  const entries = plantMap[selectedPlant];
+
+  // Remove duplicates
+  const uniqueEntries = [];
+  const seen = new Set();
+
+  entries.forEach(entry => {
+    const key = JSON.stringify(entry);
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueEntries.push(entry);
+    }
+  });
+
+  let html = "";
+
+  uniqueEntries.forEach(entry => {
+    html += `
+      <div style="margin-bottom:20px;">
+        <strong>Plant:</strong> ${entry["Plant"] || "N/A"}<br>
+        <strong>Plant Family:</strong> ${entry["Plant Family"] || "N/A"}<br>
+        <strong>Virus Genome:</strong> ${entry["Virus Genome"] || "N/A"}<br>
+        <strong>Virus Type:</strong> ${entry["Virus Type"] || "N/A"}<br>
+        <strong>Virus Family:</strong> ${entry["Virus Family"] || "N/A"}<br>
+        <strong>Name of Virus:</strong> ${entry["Name of Virus"] || "N/A"}<br>
+        <strong>Virus Strain:</strong> ${entry["Virus Strain"] || "N/A"}<br>
+        <strong>Type of Extract:</strong> ${entry["Type of Extract"] || "N/A"}<br>
+        <strong>Active Class:</strong> ${entry["Active Class"] || "N/A"}<br>
+        <strong>Active Compound:</strong> ${entry["Actve Compound"] || "N/A"}<br>
+        <strong>Title of Paper:</strong> ${entry["Title of Paper"] || "N/A"}<br>
+        <strong>Name of Author:</strong> ${entry["Name of Author"] || "N/A"}<br>
+        <strong>Reference of Journal:</strong> ${entry["Reference of Journal"] || "N/A"}<br>
+        <strong>PMID No.:</strong> ${entry["PMID No."] || "N/A"}<br>
+      </div>
+      <hr>
+    `;
+  });
+
+  detailsDiv.innerHTML = html;
+});
+
+</script>
+
+</html>
