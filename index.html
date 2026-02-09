@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AntiVir: A Database of Antiviral Plants</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
   <style>
     * {
       margin: 0;
@@ -459,6 +461,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <!-- Top Utility Bar -->
@@ -575,94 +578,21 @@
         <!-- Basic Search Section -->
         <div id="basic-search" class="content-section">
           <h2>Basic Search</h2>
-          <p>Search for antiviral plants by name, family, virus, or compound.</p>
-          
-          <input type="text" class="search-box" id="searchInput" placeholder="Search plant, virus, family, compound..." onkeyup="searchTable()">
-          
-          <h3>Plant Names and Families</h3>
-          <div class="plant-grid" id="plantList">
-            <div class="plant-card">
-              <strong>Allium sativum</strong>
-              <span style="color: #666;">Family: Amaryllidaceae</span>
-            </div>
-            <div class="plant-card">
-              <strong>Curcuma longa</strong>
-              <span style="color: #666;">Family: Zingiberaceae</span>
-            </div>
-            <div class="plant-card">
-              <strong>Azadirachta indica</strong>
-              <span style="color: #666;">Family: Meliaceae</span>
-            </div>
-            <div class="plant-card">
-              <strong>Echinacea purpurea</strong>
-              <span style="color: #666;">Family: Asteraceae</span>
-            </div>
-            <div class="plant-card">
-              <strong>Glycyrrhiza glabra</strong>
-              <span style="color: #666;">Family: Fabaceae</span>
-            </div>
-            <div class="plant-card">
-              <strong>Ocimum sanctum</strong>
-              <span style="color: #666;">Family: Lamiaceae</span>
-            </div>
-            <div class="plant-card">
-              <strong>Andrographis paniculata</strong>
-              <span style="color: #666;">Family: Acanthaceae</span>
-            </div>
-            <div class="plant-card">
-              <strong>Hypericum perforatum</strong>
-              <span style="color: #666;">Family: Hypericaceae</span>
-            </div>
-            <div class="plant-card">
-              <strong>Camellia sinensis</strong>
-              <span style="color: #666;">Family: Theaceae</span>
-            </div>
-            <div class="plant-card">
-              <strong>Vitex negundo</strong>
-              <span style="color: #666;">Family: Lamiaceae</span>
-            </div>
-            <div class="plant-card">
-              <strong>Phyllanthus niruri</strong>
-              <span style="color: #666;">Family: Phyllanthaceae</span>
-            </div>
-            <div class="plant-card">
-              <strong>Mentha piperita</strong>
-              <span style="color: #666;">Family: Lamiaceae</span>
-            </div>
-            <div class="plant-card">
-              <strong>Zingiber officinale</strong>
-              <span style="color: #666;">Family: Zingiberaceae</span>
-            </div>
-            <div class="plant-card">
-              <strong>Aloe vera</strong>
-              <span style="color: #666;">Family: Asphodelaceae</span>
-            </div>
-            <div class="plant-card">
-              <strong>Eucalyptus globulus</strong>
-              <span style="color: #666;">Family: Myrtaceae</span>
-            </div>
-            <div class="plant-card">
-              <strong>Artemisia annua</strong>
-              <span style="color: #666;">Family: Asteraceae</span>
-            </div>
-            <div class="plant-card">
-              <strong>Terminalia chebula</strong>
-              <span style="color: #666;">Family: Combretaceae</span>
-            </div>
-            <div class="plant-card">
-              <strong>Withania somnifera</strong>
-              <span style="color: #666;">Family: Solanaceae</span>
-            </div>
-            <div class="plant-card">
-              <strong>Rheum palmatum</strong>
-              <span style="color: #666;">Family: Polygonaceae</span>
-            </div>
-            <div class="plant-card">
-              <strong>Ginkgo biloba</strong>
-              <span style="color: #666;">Family: Ginkgoaceae</span>
-            </div>
+          <p>Select a plant to view detailed antiviral information.</p>
+
+          <div style="margin:20px 0;">
+            <label for="plantDropdown"><strong>Select a Plant:</strong></label><br><br>
+            <select id="plantDropdown" style="padding:10px; width:350px;">
+              <option value="">Loading plants...</option>
+            </select>
+          </div>
+
+          <div id="plantDetails" style="margin-top:25px; background:#f0f8f0; padding:20px; border-radius:6px; border-left:4px solid #0a8f5a;">
+            <h3>Plant Details</h3>
+            <div id="details">Please select a plant.</div>
           </div>
         </div>
+
 
         <!-- Statistics Section -->
         <div id="statistics" class="content-section">
@@ -966,7 +896,7 @@
   <!-- Footer -->
   <div class="footer">
     <div class="footer-content">
-      <p><strong>AntiVir Database</strong>, Created by Puja Mishra</p>
+      <p><strong>AntiVir Database</strong>, Suite 300, Research Center, CT 06510-7003 USA</p>
       <p>Copyright © 2026, AntiVir Database. All rights reserved.</p>
       <p>Tel: 203.000.0000</p>
       <p><a href="#">Contact us about this site.</a></p>
@@ -1125,13 +1055,95 @@
   </script>
 
 </body>
+
+
+<script>
+let plantMap = {};
+
+Papa.parse("data.csv", {
+  download: true,
+  header: true,
+  skipEmptyLines: true,
+  complete: function(results) {
+    const data = results.data;
+
+    data.forEach(row => {
+      const plantName = row["Name of Plant"];
+      if (!plantName) return;
+
+      if (!plantMap[plantName]) {
+        plantMap[plantName] = [];
+      }
+
+      plantMap[plantName].push(row);
+    });
+
+    populateDropdown();
+  }
+});
+
+function populateDropdown() {
+  const dropdown = document.getElementById("plantDropdown");
+  dropdown.innerHTML = '<option value="">-- Select a Plant --</option>';
+
+  Object.keys(plantMap).sort().forEach(plant => {
+    const option = document.createElement("option");
+    option.value = plant;
+    option.textContent = plant;
+    dropdown.appendChild(option);
+  });
+}
+
+document.getElementById("plantDropdown").addEventListener("change", function() {
+  const selectedPlant = this.value;
+  const detailsDiv = document.getElementById("details");
+
+  if (!selectedPlant || !plantMap[selectedPlant]) {
+    detailsDiv.innerHTML = "Please select a plant.";
+    return;
+  }
+
+  const entries = plantMap[selectedPlant];
+
+  // Remove duplicates
+  const uniqueEntries = [];
+  const seen = new Set();
+
+  entries.forEach(entry => {
+    const key = JSON.stringify(entry);
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueEntries.push(entry);
+    }
+  });
+
+  let html = "";
+
+  uniqueEntries.forEach(entry => {
+    html += `
+      <div style="margin-bottom:20px;">
+        <strong>Plant:</strong> ${entry["Plant"] || "N/A"}<br>
+        <strong>Plant Family:</strong> ${entry["Plant Family"] || "N/A"}<br>
+        <strong>Virus Genome:</strong> ${entry["Virus Genome"] || "N/A"}<br>
+        <strong>Virus Type:</strong> ${entry["Virus Type"] || "N/A"}<br>
+        <strong>Virus Family:</strong> ${entry["Virus Family"] || "N/A"}<br>
+        <strong>Name of Virus:</strong> ${entry["Name of Virus"] || "N/A"}<br>
+        <strong>Virus Strain:</strong> ${entry["Virus Strain"] || "N/A"}<br>
+        <strong>Type of Extract:</strong> ${entry["Type of Extract"] || "N/A"}<br>
+        <strong>Active Class:</strong> ${entry["Active Class"] || "N/A"}<br>
+        <strong>Active Compound:</strong> ${entry["Actve Compound"] || "N/A"}<br>
+        <strong>Title of Paper:</strong> ${entry["Title of Paper"] || "N/A"}<br>
+        <strong>Name of Author:</strong> ${entry["Name of Author"] || "N/A"}<br>
+        <strong>Reference of Journal:</strong> ${entry["Reference of Journal"] || "N/A"}<br>
+        <strong>PMID No.:</strong> ${entry["PMID No."] || "N/A"}<br>
+      </div>
+      <hr>
+    `;
+  });
+
+  detailsDiv.innerHTML = html;
+});
+
+</script>
+
 </html>
-<!-- Top Utility Bar -->
-<div class="utility-bar">
-  <a href="#"></a>
-  <a href="#">A-Z Index</a>
-  <div class="utility-search">
-    <input type="text" placeholder="Search this site">
-    <button>Go</button>
-  </div>
-</div>
