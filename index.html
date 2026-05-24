@@ -394,6 +394,64 @@
       max-width: 450px;
     }
 
+    .plant-families-chart-container {
+      min-height: 520px;
+    }
+
+    .plant-families-chart-wrapper {
+      flex: 1;
+      min-width: 100%;
+      max-width: none;
+      height: 500px;
+    }
+
+    .families-summary {
+      background: #f0f8f0;
+      border-left: 4px solid #0a8f5a;
+      padding: 18px 22px;
+      margin: 20px 0;
+      line-height: 1.7;
+    }
+
+    .families-summary strong {
+      color: #1b5e20;
+    }
+
+    .families-ranking h3 {
+      color: #2e7d32;
+      margin: 28px 0 12px;
+    }
+
+    .families-ranking-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .families-ranking-table th {
+      background-color: #0a8f5a;
+      color: white;
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    .families-ranking-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .families-ranking-table tr:hover {
+      background-color: #f0f8f0;
+    }
+
+    .families-ranking-table .rank-col {
+      width: 70px;
+      text-align: center;
+      font-weight: bold;
+      color: #1b5e20;
+    }
+
     /* Footer */
     .footer {
       background: #f5e6d3;
@@ -451,7 +509,7 @@
     </div>
     <div class="sub-nav">
       <a href="#">About</a>
-      <a href="#" onclick="showSection('publications'); return false;">Publications</a>
+      <a href="#" onclick="showSection('publications', this); return false;">Publications</a>
       <a href="#">Research</a>
       <a href="#">Contact us</a>
     </div>
@@ -460,11 +518,11 @@
   <!-- Main Navigation Tabs -->
   <div class="main-nav">
     <div class="nav-tabs">
-      <a href="#" class="nav-tab active" onclick="showSection('home'); return false;">Home</a>
-      <a href="#" class="nav-tab" onclick="showSection('basic-search'); return false;">Basic Search</a>
-      <a href="#" class="nav-tab" onclick="showSection('statistics'); return false;">Statistics</a>
-      <a href="#" class="nav-tab" onclick="showSection('browse'); return false;">Browse</a>
-      <a href="#" class="nav-tab" onclick="showSection('publications'); return false;">Publications</a>
+      <a href="#" class="nav-tab active" onclick="showSection('home', this); return false;">Home</a>
+      <a href="#" class="nav-tab" onclick="showSection('basic-search', this); return false;">Basic Search</a>
+      <a href="#" class="nav-tab" onclick="showSection('statistics', this); return false;">Statistics</a>
+      <a href="#" class="nav-tab" onclick="showSection('browse', this); return false;">Browse</a>
+      <a href="#" class="nav-tab" onclick="showSection('publications', this); return false;">Publications</a>
     </div>
     <div class="breadcrumb">
       <a href="#">Home page</a> | <a href="#">Section menu</a> | <a href="#">Submenu</a>
@@ -481,7 +539,7 @@
         <li><a href="#" onclick="showSection('statistics'); return false;">Statistics</a></li>
         <li><a href="#" onclick="showSection('browse'); return false;">Browse Database</a></li>
         <li><a href="#">Virus Families</a></li>
-        <li><a href="#">Plant Families</a></li>
+        <li><a href="#" onclick="showSection('plant-families'); return false;">Plant Families</a></li>
         <li><a href="#">Research Methods</a></li>
         <li><a href="#" onclick="showSection('publications'); return false;">Publications</a></li>
       </ul>
@@ -517,7 +575,7 @@
           </div>
 
           <h3>Featured Plants</h3>
-          <div class="plant-grid">
+          <div class="plant-grid" id="featuredPlants">
             <div class="plant-card">
               <strong>Allium sativum</strong>
               <span style="color: #666;">Family: Amaryllidaceae</span>
@@ -844,11 +902,51 @@
           </div>
         </div>
 
+        <!-- Plant Families Section -->
+        <div id="plant-families" class="content-section">
+          <h2>Plant Families</h2>
+          <p>Analysis of plant families from the <strong>Plant Family</strong> column in the AntiVir database (<code>data.csv</code>).</p>
+
+          <div class="families-summary" id="plantFamiliesSummary">
+            Loading plant family statistics...
+          </div>
+
+          <div class="chart-container plant-families-chart-container">
+            <div class="chart-title">Distribution of Plant Families</div>
+            <div class="chart-subtitle">Pie chart: share of database entries per plant family (Plant Family column)</div>
+            <div class="chart-row">
+              <div class="chart-wrapper plant-families-chart-wrapper">
+                <canvas id="allPlantFamiliesChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="families-ranking">
+            <h3>Plant families most studied (decreasing order)</h3>
+            <p>Ranked by number of database entries per family, highest to lowest.</p>
+            <div class="table-wrapper">
+              <table class="families-ranking-table">
+                <thead>
+                  <tr>
+                    <th class="rank-col">Rank</th>
+                    <th>Plant Family</th>
+                    <th>Studies (entries)</th>
+                    <th>% of total entries</th>
+                  </tr>
+                </thead>
+                <tbody id="plantFamiliesRankingBody">
+                  <tr><td colspan="4">Loading ranking...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <!-- Publications Section -->
         <div id="publications" class="content-section">
           <h2>Publications</h2>
           <p>References from the AntiVir database. All publications cited for antiviral plant activity.</p>
-          <ol class="publications-list">
+          <ol class="publications-list" id="publicationsList">
             <li>Smith et al. Antiviral activity of garlic extract against dengue virus. <em>Journal of Virology</em>. PMID: 12345678. (Allium sativum, Allicin, Dengue virus)</li>
             <li>Johnson et al. Curcumin inhibits hepatitis C virus replication. <em>Antiviral Research</em>. PMID: 23456789. (Curcuma longa, Curcumin, Hepatitis C virus)</li>
             <li>Williams et al. Neem extract shows anti-herpes activity. <em>Phytomedicine</em>. PMID: 34567890. (Azadirachta indica, Azadirachtin, Herpes simplex virus)</li>
@@ -893,22 +991,16 @@
   </div>
 
   <script>
-    function showSection(sectionId) {
-      // Hide all sections
-      const sections = document.querySelectorAll('.content-section');
-      sections.forEach(section => {
+    function showSection(sectionId, el) {
+      document.querySelectorAll('.content-section').forEach(section => {
         section.classList.remove('active');
       });
-
-      // Show selected section
       document.getElementById(sectionId).classList.add('active');
 
-      // Update active tab
-      const tabs = document.querySelectorAll('.nav-tab');
-      tabs.forEach(tab => {
-        tab.classList.remove('active');
-      });
-      event.target.classList.add('active');
+      if (el && el.classList.contains('nav-tab')) {
+        document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+        el.classList.add('active');
+      }
     }
 
     function searchTable() {
@@ -1043,11 +1135,110 @@
     }
   </script>
 
-</body>
-
-
 <script>
 let plantMap = {};
+let plantFamiliesChart = null;
+
+function generateColors(count) {
+  const colors = [];
+  for (let i = 0; i < count; i++) {
+    const hue = Math.round((i * 137.508) % 360);
+    colors.push(`hsl(${hue}, 62%, 52%)`);
+  }
+  return colors;
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function renderPlantFamiliesSummary(sortedFamilies, totalEntries) {
+  const familyCount = sortedFamilies.length;
+  const summaryEl = document.getElementById('plantFamiliesSummary');
+  const topFive = sortedFamilies.slice(0, 5)
+    .map(([name, count], i) => (i + 1) + '. <strong>' + escapeHtml(name) + '</strong> (' + count + ' entries)')
+    .join('; ');
+
+  summaryEl.innerHTML =
+    '<p>This study includes <strong>' + familyCount + ' plant families</strong> ' +
+    'represented across <strong>' + totalEntries + ' database entries</strong> ' +
+    '(from the Plant Family column in <code>data.csv</code>).</p>' +
+    '<p>The five most studied families are: ' + topFive + '.</p>';
+}
+
+function renderPlantFamiliesRanking(sortedFamilies, totalEntries) {
+  const tbody = document.getElementById('plantFamiliesRankingBody');
+  if (!sortedFamilies.length) {
+    tbody.innerHTML = '<tr><td colspan="4">No plant family data found.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = sortedFamilies.map(([name, count], index) => {
+    const pct = ((count / totalEntries) * 100).toFixed(1);
+    return '<tr>' +
+      '<td class="rank-col">' + (index + 1) + '</td>' +
+      '<td>' + escapeHtml(name) + '</td>' +
+      '<td>' + count + '</td>' +
+      '<td>' + pct + '%</td>' +
+      '</tr>';
+  }).join('');
+}
+
+function buildPlantFamiliesChart(plantFamilyCount) {
+  const canvas = document.getElementById('allPlantFamiliesChart');
+  if (!canvas) return;
+
+  const sorted = Object.entries(plantFamilyCount)
+    .filter(([name]) => name && name.toLowerCase() !== 'n/a')
+    .sort((a, b) => b[1] - a[1]);
+
+  const labels = sorted.map(([name]) => name);
+  const values = sorted.map(([, count]) => count);
+  const totalEntries = values.reduce((sum, n) => sum + n, 0);
+
+  renderPlantFamiliesSummary(sorted, totalEntries);
+  renderPlantFamiliesRanking(sorted, totalEntries);
+
+  if (plantFamiliesChart) {
+    plantFamiliesChart.destroy();
+  }
+
+  plantFamiliesChart = new Chart(canvas, {
+    type: 'pie',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        backgroundColor: generateColors(labels.length)
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: {
+            boxWidth: 10,
+            font: { size: 9 },
+            padding: 4
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+              const pct = ((ctx.parsed / total) * 100).toFixed(1);
+              return ctx.label + ': ' + ctx.parsed + ' (' + pct + '%)';
+            }
+          }
+        }
+      }
+    }
+  });
+}
 
 Papa.parse("data.csv", {
   download: true,
@@ -1055,19 +1246,36 @@ Papa.parse("data.csv", {
   skipEmptyLines: true,
   complete: function(results) {
     const data = results.data;
+    const plantFamilyCount = {};
 
     data.forEach(row => {
-      const plantName = row["Name of Plant"];
+      const normalized = {};
+      Object.keys(row).forEach(key => {
+        normalized[key.trim()] = typeof row[key] === 'string' ? row[key].trim() : row[key];
+      });
+
+      const plantName = normalized["Name of Plant"];
       if (!plantName) return;
+
+      const family = normalized["Plant Family"];
+      if (family && family.toLowerCase() !== 'n/a') {
+        plantFamilyCount[family] = (plantFamilyCount[family] || 0) + 1;
+      }
 
       if (!plantMap[plantName]) {
         plantMap[plantName] = [];
       }
-
-      plantMap[plantName].push(row);
+      plantMap[plantName].push(normalized);
     });
 
     populateDropdown();
+    buildPlantFamiliesChart(plantFamilyCount);
+  },
+  error: function() {
+    document.getElementById('plantFamiliesSummary').innerHTML =
+      '<p>Could not load <code>data.csv</code>. Place the file in the same folder as <code>index.html</code>.</p>';
+    document.getElementById('plantFamiliesRankingBody').innerHTML =
+      '<tr><td colspan="4">Failed to load data.</td></tr>';
   }
 });
 
@@ -1111,7 +1319,8 @@ document.getElementById("plantDropdown").addEventListener("change", function() {
   uniqueEntries.forEach(entry => {
     html += `
       <div style="margin-bottom:20px;">
-        <strong>Plant:</strong> ${entry["Plant"] || "N/A"}<br>
+        <strong>Plant Group:</strong> ${entry["Plant"] || "N/A"}<br>
+        <strong>Plant Name:</strong> ${entry["Name of Plant"] || "N/A"}<br>
         <strong>Plant Family:</strong> ${entry["Plant Family"] || "N/A"}<br>
         <strong>Virus Genome:</strong> ${entry["Virus Genome"] || "N/A"}<br>
         <strong>Virus Type:</strong> ${entry["Virus Type"] || "N/A"}<br>
@@ -1124,7 +1333,7 @@ document.getElementById("plantDropdown").addEventListener("change", function() {
         <strong>Title of Paper:</strong> ${entry["Title of Paper"] || "N/A"}<br>
         <strong>Name of Author:</strong> ${entry["Name of Author"] || "N/A"}<br>
         <strong>Reference of Journal:</strong> ${entry["Reference of Journal"] || "N/A"}<br>
-        <strong>PMID No.:</strong> ${entry["PMID No."] || "N/A"}<br>
+        <strong>PMID No.:</strong> ${entry["PMID No."] || entry["PMID No"] || "N/A"}<br>
       </div>
       <hr>
     `;
@@ -1135,4 +1344,5 @@ document.getElementById("plantDropdown").addEventListener("change", function() {
 
 </script>
 
+</body>
 </html>
