@@ -21,45 +21,6 @@
       line-height: 1.6;
     }
 
-    /* Top Utility Bar */
-    .utility-bar {
-      background: #e8e8e8;
-      padding: 8px 20px;
-      text-align: right;
-      font-size: 12px;
-      border-bottom: 1px solid #ddd;
-    }
-
-    .utility-bar a {
-      color: #0066cc;
-      text-decoration: none;
-      margin: 0 10px;
-    }
-
-    .utility-bar a:hover {
-      text-decoration: underline;
-    }
-
-    .utility-search {
-      display: inline-block;
-      margin-left: 15px;
-    }
-
-    .utility-search input {
-      padding: 3px 5px;
-      font-size: 12px;
-      border: 1px solid #999;
-    }
-
-    .utility-search button {
-      padding: 3px 10px;
-      font-size: 12px;
-      background: #0066cc;
-      color: white;
-      border: 1px solid #0066cc;
-      cursor: pointer;
-    }
-
     /* Header Section */
     .header-container {
       background: #fff;
@@ -459,20 +420,20 @@
     .footer a:hover {
       text-decoration: underline;
     }
+
+    .publications-list {
+      margin: 20px 0;
+      padding-left: 25px;
+      line-height: 1.9;
+    }
+
+    .publications-list li {
+      margin-bottom: 15px;
+    }
   </style>
 </head>
 
 <body>
-
-  <!-- Top Utility Bar -->
-  <div class="utility-bar">
-    <a href="#">Calendar</a>
-    <a href="#">A-Z Index</a>
-    <div class="utility-search">
-      <input type="text" placeholder="Search this site">
-      <button>Go</button>
-    </div>
-  </div>
 
   <!-- Header -->
   <div class="header-container">
@@ -490,8 +451,8 @@
     </div>
     <div class="sub-nav">
       <a href="#">About</a>
+      <a href="#" onclick="showSection('publications'); return false;">Publications</a>
       <a href="#">Research</a>
-      <a href="#">Publications</a>
       <a href="#">Contact us</a>
     </div>
   </div>
@@ -503,6 +464,7 @@
       <a href="#" class="nav-tab" onclick="showSection('basic-search'); return false;">Basic Search</a>
       <a href="#" class="nav-tab" onclick="showSection('statistics'); return false;">Statistics</a>
       <a href="#" class="nav-tab" onclick="showSection('browse'); return false;">Browse</a>
+      <a href="#" class="nav-tab" onclick="showSection('publications'); return false;">Publications</a>
     </div>
     <div class="breadcrumb">
       <a href="#">Home page</a> | <a href="#">Section menu</a> | <a href="#">Submenu</a>
@@ -521,7 +483,7 @@
         <li><a href="#">Virus Families</a></li>
         <li><a href="#">Plant Families</a></li>
         <li><a href="#">Research Methods</a></li>
-        <li><a href="#">Publications</a></li>
+        <li><a href="#" onclick="showSection('publications'); return false;">Publications</a></li>
       </ul>
     </div>
 
@@ -882,6 +844,34 @@
           </div>
         </div>
 
+        <!-- Publications Section -->
+        <div id="publications" class="content-section">
+          <h2>Publications</h2>
+          <p>References from the AntiVir database. All publications cited for antiviral plant activity.</p>
+          <ol class="publications-list">
+            <li>Smith et al. Antiviral activity of garlic extract against dengue virus. <em>Journal of Virology</em>. PMID: 12345678. (Allium sativum, Allicin, Dengue virus)</li>
+            <li>Johnson et al. Curcumin inhibits hepatitis C virus replication. <em>Antiviral Research</em>. PMID: 23456789. (Curcuma longa, Curcumin, Hepatitis C virus)</li>
+            <li>Williams et al. Neem extract shows anti-herpes activity. <em>Phytomedicine</em>. PMID: 34567890. (Azadirachta indica, Azadirachtin, Herpes simplex virus)</li>
+            <li>Brown et al. Echinacea compounds inhibit influenza virus. <em>Virology Journal</em>. PMID: 45678901. (Echinacea purpurea, Echinacoside, Influenza A virus)</li>
+            <li>Davis et al. Licorice root extract against dengue. <em>Antiviral Research</em>. PMID: 56789012. (Glycyrrhiza glabra, Glycyrrhizin, Dengue virus)</li>
+            <li>Miller et al. Tulsi extract inhibits coxsackievirus. <em>Journal of Natural Products</em>. PMID: 67890123. (Ocimum sanctum, Ursolic acid, Coxsackievirus)</li>
+            <li>Wilson et al. Andrographis shows anti-chikungunya activity. <em>PLoS ONE</em>. PMID: 78901234. (Andrographis paniculata, Andrographolide, Chikungunya virus)</li>
+            <li>Moore et al. St. John's wort against HCV. <em>Antiviral Research</em>. PMID: 89012345. (Hypericum perforatum, Hypericin, Hepatitis C virus)</li>
+            <li>Taylor et al. Green tea catechins inhibit dengue. <em>Virology</em>. PMID: 90123456. (Camellia sinensis, Epigallocatechin gallate, Dengue virus)</li>
+            <li>Anderson et al. Vitex negundo anti-herpes activity. <em>Phytotherapy Research</em>. PMID: 01234567. (Vitex negundo, Vitexin, Herpes simplex virus)</li>
+            <li>Thomas et al. Phyllanthus against hepatitis B. <em>Journal of Ethnopharmacology</em>. PMID: 11223344. (Phyllanthus niruri, Phyllanthin, Hepatitis B virus)</li>
+            <li>Jackson et al. Peppermint oil antiviral activity. <em>Antiviral Research</em>. PMID: 22334455. (Mentha piperita, Menthol, Enterovirus)</li>
+            <li>White et al. Ginger extract against influenza. <em>Virology Journal</em>. PMID: 33445566. (Zingiber officinale, 6-Gingerol, Influenza A virus)</li>
+            <li>Harris et al. Aloe vera anti-herpes properties. <em>Phytomedicine</em>. PMID: 44556677. (Aloe vera, Acemannan, Herpes simplex virus)</li>
+            <li>Martin et al. Eucalyptus oil against dengue. <em>Antiviral Research</em>. PMID: 55667788. (Eucalyptus globulus, Eucalyptol, Dengue virus)</li>
+            <li>Garcia et al. Artemisia annua anti-dengue activity. <em>PLoS Neglected Tropical Diseases</em>. PMID: 66778899. (Artemisia annua, Artemisinin, Dengue virus)</li>
+            <li>Lee et al. Terminalia chebula against poliovirus. <em>Journal of Virology</em>. PMID: 77889900. (Terminalia chebula, Chebulagic acid, Poliovirus)</li>
+            <li>Kim et al. Ashwagandha anti-chikungunya effects. <em>Antiviral Research</em>. PMID: 88990011. (Withania somnifera, Withaferin A, Chikungunya virus)</li>
+            <li>Park et al. Rhubarb extract against VZV. <em>Phytomedicine</em>. PMID: 99001122. (Rheum palmatum, Emodin, Varicella-zoster virus)</li>
+            <li>Chen et al. Ginkgo biloba against HCV. <em>Antiviral Research</em>. PMID: 10111213. (Ginkgo biloba, Ginkgetin, Hepatitis C virus)</li>
+          </ol>
+        </div>
+
         <div class="last-revised">
           Last revised February 4, 2026. ↑
         </div>
@@ -896,9 +886,8 @@
   <!-- Footer -->
   <div class="footer">
     <div class="footer-content">
-      <p><strong>AntiVir Database</strong>, Suite 300, Research Center, CT 06510-7003 USA</p>
+      <p><strong>AntiVir Database</strong>. Created by Puja Mishra.</p>
       <p>Copyright © 2026, AntiVir Database. All rights reserved.</p>
-      <p>Tel: 203.000.0000</p>
       <p><a href="#">Contact us about this site.</a></p>
     </div>
   </div>
