@@ -497,13 +497,13 @@
   <div class="header-container">
     <div class="header-top">
       <div class="logo-area">
-        <img src="assets/virus-logo.png" alt="Virus structure visualization">
+        <img src="Virus%20pic.jpeg" alt="Virus structure visualization">
       </div>
       <div class="header-banner">
         <h1>AntiVir: A Database for Antiviral Plants</h1>
         <div class="header-plants">
-          <img src="assets/plant1.png" alt="Medicinal plant">
-          <img src="assets/plant2.png" alt="Plant leaf">
+          <img src="plant1.png" alt="Medicinal plant">
+          <img src="plant2.png" alt="Plant leaf">
         </div>
       </div>
     </div>
@@ -569,7 +569,7 @@
               <p>Viruses Documented</p>
             </div>
             <div class="stat-box">
-              <h3>15+</h3>
+              <h3 id="homeFamilyCount">15+</h3>
               <p>Plant Families</p>
             </div>
           </div>
@@ -629,11 +629,11 @@
               <p>Virus Types</p>
             </div>
             <div class="stat-box">
-              <h3>15+</h3>
+              <h3 id="statFamilyCount">15+</h3>
               <p>Plant Families</p>
             </div>
             <div class="stat-box">
-              <h3>8</h3>
+              <h3 id="statVirusFamilyCount">8</h3>
               <p>Virus Families</p>
             </div>
           </div>
@@ -905,15 +905,15 @@
         <!-- Plant Families Section -->
         <div id="plant-families" class="content-section">
           <h2>Plant Families</h2>
-          <p>Analysis of plant families from the <strong>Plant Family</strong> column in the AntiVir database (<code>data.csv</code>).</p>
+          <p>Analysis based on the <strong>Plant Family</strong> column in <code>data.csv</code>.</p>
 
           <div class="families-summary" id="plantFamiliesSummary">
-            Loading plant family statistics...
+            Loading plant family statistics from data.csv...
           </div>
 
           <div class="chart-container plant-families-chart-container">
             <div class="chart-title">Distribution of Plant Families</div>
-            <div class="chart-subtitle">Pie chart: share of database entries per plant family (Plant Family column)</div>
+            <div class="chart-subtitle">Pie chart of all plant families (Plant Family column, data.csv)</div>
             <div class="chart-row">
               <div class="chart-wrapper plant-families-chart-wrapper">
                 <canvas id="allPlantFamiliesChart"></canvas>
@@ -923,7 +923,7 @@
 
           <div class="families-ranking">
             <h3>Plant families most studied (decreasing order)</h3>
-            <p>Ranked by number of database entries per family, highest to lowest.</p>
+            <p>All families ranked from highest to lowest number of entries in data.csv.</p>
             <div class="table-wrapper">
               <table class="families-ranking-table">
                 <thead>
@@ -935,11 +935,141 @@
                   </tr>
                 </thead>
                 <tbody id="plantFamiliesRankingBody">
-                  <tr><td colspan="4">Loading ranking...</td></tr>
+                  <tr><td colspan="4">Loading ranking from data.csv...</td></tr>
                 </tbody>
               </table>
             </div>
           </div>
+
+          <script>
+          (function() {
+            var plantFamiliesTabChart = null;
+
+            function pfEscapeHtml(text) {
+              var div = document.createElement('div');
+              div.textContent = text;
+              return div.innerHTML;
+            }
+
+            function pfGenerateColors(count) {
+              var colors = [];
+              for (var i = 0; i < count; i++) {
+                var hue = Math.round((i * 137.508) % 360);
+                colors.push('hsl(' + hue + ', 62%, 52%)');
+              }
+              return colors;
+            }
+
+            function pfRenderSummary(sortedFamilies, totalEntries) {
+              var familyCount = sortedFamilies.length;
+              var summaryEl = document.getElementById('plantFamiliesSummary');
+              var topFive = sortedFamilies.slice(0, 5).map(function(item, i) {
+                return (i + 1) + '. <strong>' + pfEscapeHtml(item[0]) + '</strong> (' + item[1] + ' entries)';
+              }).join('; ');
+
+              summaryEl.innerHTML =
+                '<p><strong>Number of plant families in this study: ' + familyCount + '</strong> ' +
+                '(unique values in the Plant Family column of data.csv).</p>' +
+                '<p>These families appear across <strong>' + totalEntries + ' database entries</strong> in total.</p>' +
+                '<p>The five most studied plant families (decreasing order) are: ' + topFive + '.</p>';
+            }
+
+            function pfRenderRanking(sortedFamilies, totalEntries) {
+              var tbody = document.getElementById('plantFamiliesRankingBody');
+              if (!sortedFamilies.length) {
+                tbody.innerHTML = '<tr><td colspan="4">No plant family data found in data.csv.</td></tr>';
+                return;
+              }
+              tbody.innerHTML = sortedFamilies.map(function(item, index) {
+                var name = item[0];
+                var count = item[1];
+                var pct = ((count / totalEntries) * 100).toFixed(1);
+                return '<tr>' +
+                  '<td class="rank-col">' + (index + 1) + '</td>' +
+                  '<td>' + pfEscapeHtml(name) + '</td>' +
+                  '<td>' + count + '</td>' +
+                  '<td>' + pct + '%</td>' +
+                  '</tr>';
+              }).join('');
+            }
+
+            function pfBuildChart(plantFamilyCount) {
+              var canvas = document.getElementById('allPlantFamiliesChart');
+              if (!canvas) return;
+
+              var sorted = Object.keys(plantFamilyCount).map(function(name) {
+                return [name, plantFamilyCount[name]];
+              }).filter(function(item) {
+                return item[0] && item[0].toLowerCase() !== 'n/a';
+              }).sort(function(a, b) {
+                return b[1] - a[1];
+              });
+
+              var labels = sorted.map(function(item) { return item[0]; });
+              var values = sorted.map(function(item) { return item[1]; });
+              var totalEntries = values.reduce(function(sum, n) { return sum + n; }, 0);
+
+              pfRenderSummary(sorted, totalEntries);
+              pfRenderRanking(sorted, totalEntries);
+
+              if (plantFamiliesTabChart) {
+                plantFamiliesTabChart.destroy();
+              }
+
+              plantFamiliesTabChart = new Chart(canvas, {
+                type: 'pie',
+                data: {
+                  labels: labels,
+                  datasets: [{
+                    data: values,
+                    backgroundColor: pfGenerateColors(labels.length)
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: 'right',
+                      labels: { boxWidth: 10, font: { size: 9 }, padding: 4 }
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: function(ctx) {
+                          var total = ctx.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                          var pct = ((ctx.parsed / total) * 100).toFixed(1);
+                          return ctx.label + ': ' + ctx.parsed + ' entries (' + pct + '%)';
+                        }
+                      }
+                    }
+                  }
+                }
+              });
+            }
+
+            Papa.parse('data.csv', {
+              download: true,
+              header: true,
+              skipEmptyLines: true,
+              complete: function(results) {
+                var plantFamilyCount = {};
+                results.data.forEach(function(row) {
+                  var family = (row['Plant Family'] || '').trim();
+                  if (family && family.toLowerCase() !== 'n/a') {
+                    plantFamilyCount[family] = (plantFamilyCount[family] || 0) + 1;
+                  }
+                });
+                pfBuildChart(plantFamilyCount);
+              },
+              error: function() {
+                document.getElementById('plantFamiliesSummary').innerHTML =
+                  '<p>Could not load <code>data.csv</code>. Place <code>data.csv</code> in the same folder as <code>index.html</code>.</p>';
+                document.getElementById('plantFamiliesRankingBody').innerHTML =
+                  '<tr><td colspan="4">Failed to load data.csv.</td></tr>';
+              }
+            });
+          })();
+          </script>
         </div>
 
         <!-- Publications Section -->
@@ -1022,223 +1152,69 @@
       });
     }
 
-    // Update statistics on page load
-    window.addEventListener('DOMContentLoaded', function() {
-      const plantCount = new Set();
-      const virusCount = new Set();
-      const plantFamilyCount = {};
-      const virusFamilyCount = {};
-      const extractCount = {};
-      const compoundCount = {};
-      const virusCountMap = {};
-      const rows = document.querySelectorAll('#tableBody tr');
-      
-      rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 6) {
-          plantCount.add(cells[0].textContent.trim());
-          virusCount.add(cells[2].textContent.trim());
-          const pf = cells[1].textContent.trim();
-          const vf = cells[3].textContent.trim();
-          const ext = cells[4].textContent.trim();
-          const comp = cells[5].textContent.trim();
-          const virus = cells[2].textContent.trim();
-          plantFamilyCount[pf] = (plantFamilyCount[pf] || 0) + 1;
-          virusFamilyCount[vf] = (virusFamilyCount[vf] || 0) + 1;
-          extractCount[ext] = (extractCount[ext] || 0) + 1;
-          compoundCount[comp] = (compoundCount[comp] || 0) + 1;
-          virusCountMap[virus] = (virusCountMap[virus] || 0) + 1;
+    // NOTE: statistics and charts are populated from the real data.csv file
+    // (see the Papa.parse block further below), not from this page's markup,
+    // so they always reflect the actual dataset instead of demo/placeholder rows.
+    const chartColors = ['#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF','#FF9F40','#8B008B','#32CD32','#DC143C','#20B2AA','#1E3A8A','#D97706','#B0B0B0'];
+
+    // Real datasets can have far more categories (e.g. 182 plant families,
+    // 54 virus species) than fit on a readable pie chart. This keeps the
+    // top N largest categories and lumps the rest into a single "Other" slice.
+    function topNPlusOther(countMap, n) {
+      const entries = Object.entries(countMap).filter(([k]) => k && k.trim() !== '');
+      entries.sort((a, b) => b[1] - a[1]);
+      const top = entries.slice(0, n);
+      const rest = entries.slice(n);
+      const restTotal = rest.reduce((sum, [, v]) => sum + v, 0);
+      const labels = top.map(([k]) => k);
+      const values = top.map(([, v]) => v);
+      if (restTotal > 0) {
+        labels.push(`Other (${rest.length})`);
+        values.push(restTotal);
+      }
+      return { labels, values };
+    }
+
+    function makePieChart(canvasId, countMap, n) {
+      const { labels, values } = topNPlusOther(countMap, n);
+      new Chart(document.getElementById(canvasId), {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: chartColors.slice(0, labels.length)
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'right' },
+            tooltip: {
+              callbacks: {
+                label: function(ctx) {
+                  const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                  const pct = total ? ((ctx.parsed / total) * 100).toFixed(1) : '0.0';
+                  return `${ctx.label}: ${ctx.parsed} (${pct}%)`;
+                }
+              }
+            }
+          }
         }
       });
-
-      document.getElementById('plantCount').textContent = plantCount.size;
-      document.getElementById('virusCount').textContent = virusCount.size;
-      document.getElementById('statPlantCount').textContent = plantCount.size;
-      document.getElementById('statVirusCount').textContent = virusCount.size;
-
-      // Initialize charts
-      initCharts(plantFamilyCount, virusFamilyCount, extractCount, compoundCount, virusCountMap);
-    });
+    }
 
     function initCharts(plantFamilyCount, virusFamilyCount, extractCount, compoundCount, virusCountMap) {
-      const colors = ['#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF','#FF9F40','#8B008B','#32CD32','#DC143C','#20B2AA','#1E3A8A','#D97706','#10B981','#059669','#047857'];
-
-      // Distribution of Virus (Pie)
-      const virusLabels = Object.keys(virusCountMap);
-      new Chart(document.getElementById('virusPieChart'), {
-        type: 'pie',
-        data: {
-          labels: virusLabels,
-          datasets: [{
-            data: Object.values(virusCountMap),
-            backgroundColor: colors.slice(0, virusLabels.length)
-          }]
-        },
-        options: { responsive: true, plugins: { legend: { position: 'right' } } }
-      });
-
-      // Distribution of active extracts (Pie)
-      const extractLabels = Object.keys(extractCount);
-      new Chart(document.getElementById('extractsPieChart'), {
-        type: 'pie',
-        data: {
-          labels: extractLabels,
-          datasets: [{
-            data: Object.values(extractCount),
-            backgroundColor: ['#8B008B','#FF69B4','#32CD32','#87CEEB','#9ACD32','#DAA520','#DC143C','#228B22','#20B2AA','#D3D3D3']
-          }]
-        },
-        options: { responsive: true, plugins: { legend: { position: 'right' } } }
-      });
-
-      // Distribution of active compounds (Pie)
-      const compoundLabels = Object.keys(compoundCount);
-      new Chart(document.getElementById('compoundsPieChart'), {
-        type: 'pie',
-        data: {
-          labels: compoundLabels,
-          datasets: [{
-            data: Object.values(compoundCount),
-            backgroundColor: colors.slice(0, compoundLabels.length)
-          }]
-        },
-        options: { responsive: true, plugins: { legend: { position: 'right' } } }
-      });
-
-      // Family Count (Plant Families Pie Chart)
-      const familyLabels = Object.keys(plantFamilyCount);
-      new Chart(document.getElementById('plantFamilyPieChart'), {
-        type: 'pie',
-        data: {
-          labels: familyLabels,
-          datasets: [{
-            data: Object.values(plantFamilyCount),
-            backgroundColor: colors.slice(0, familyLabels.length)
-          }]
-        },
-        options: { responsive: true, plugins: { legend: { position: 'right' } } }
-      });
-
-      // Virus Families Pie Chart
-      const vfLabels = Object.keys(virusFamilyCount);
-      new Chart(document.getElementById('virusFamilyPieChart'), {
-        type: 'pie',
-        data: {
-          labels: vfLabels,
-          datasets: [{
-            data: Object.values(virusFamilyCount),
-            backgroundColor: colors.slice(0, vfLabels.length)
-          }]
-        },
-        options: { responsive: true, plugins: { legend: { position: 'right' } } }
-      });
+      makePieChart('virusPieChart', virusCountMap, 10);
+      makePieChart('extractsPieChart', extractCount, 10);
+      makePieChart('compoundsPieChart', compoundCount, 12);
+      makePieChart('plantFamilyPieChart', plantFamilyCount, 12);
+      makePieChart('virusFamilyPieChart', virusFamilyCount, 10);
     }
   </script>
 
 <script>
 let plantMap = {};
-let plantFamiliesChart = null;
-
-function generateColors(count) {
-  const colors = [];
-  for (let i = 0; i < count; i++) {
-    const hue = Math.round((i * 137.508) % 360);
-    colors.push(`hsl(${hue}, 62%, 52%)`);
-  }
-  return colors;
-}
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-function renderPlantFamiliesSummary(sortedFamilies, totalEntries) {
-  const familyCount = sortedFamilies.length;
-  const summaryEl = document.getElementById('plantFamiliesSummary');
-  const topFive = sortedFamilies.slice(0, 5)
-    .map(([name, count], i) => (i + 1) + '. <strong>' + escapeHtml(name) + '</strong> (' + count + ' entries)')
-    .join('; ');
-
-  summaryEl.innerHTML =
-    '<p>This study includes <strong>' + familyCount + ' plant families</strong> ' +
-    'represented across <strong>' + totalEntries + ' database entries</strong> ' +
-    '(from the Plant Family column in <code>data.csv</code>).</p>' +
-    '<p>The five most studied families are: ' + topFive + '.</p>';
-}
-
-function renderPlantFamiliesRanking(sortedFamilies, totalEntries) {
-  const tbody = document.getElementById('plantFamiliesRankingBody');
-  if (!sortedFamilies.length) {
-    tbody.innerHTML = '<tr><td colspan="4">No plant family data found.</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = sortedFamilies.map(([name, count], index) => {
-    const pct = ((count / totalEntries) * 100).toFixed(1);
-    return '<tr>' +
-      '<td class="rank-col">' + (index + 1) + '</td>' +
-      '<td>' + escapeHtml(name) + '</td>' +
-      '<td>' + count + '</td>' +
-      '<td>' + pct + '%</td>' +
-      '</tr>';
-  }).join('');
-}
-
-function buildPlantFamiliesChart(plantFamilyCount) {
-  const canvas = document.getElementById('allPlantFamiliesChart');
-  if (!canvas) return;
-
-  const sorted = Object.entries(plantFamilyCount)
-    .filter(([name]) => name && name.toLowerCase() !== 'n/a')
-    .sort((a, b) => b[1] - a[1]);
-
-  const labels = sorted.map(([name]) => name);
-  const values = sorted.map(([, count]) => count);
-  const totalEntries = values.reduce((sum, n) => sum + n, 0);
-
-  renderPlantFamiliesSummary(sorted, totalEntries);
-  renderPlantFamiliesRanking(sorted, totalEntries);
-
-  if (plantFamiliesChart) {
-    plantFamiliesChart.destroy();
-  }
-
-  plantFamiliesChart = new Chart(canvas, {
-    type: 'pie',
-    data: {
-      labels: labels,
-      datasets: [{
-        data: values,
-        backgroundColor: generateColors(labels.length)
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'right',
-          labels: {
-            boxWidth: 10,
-            font: { size: 9 },
-            padding: 4
-          }
-        },
-        tooltip: {
-          callbacks: {
-            label: function(ctx) {
-              const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-              const pct = ((ctx.parsed / total) * 100).toFixed(1);
-              return ctx.label + ': ' + ctx.parsed + ' (' + pct + '%)';
-            }
-          }
-        }
-      }
-    }
-  });
-}
 
 Papa.parse("data.csv", {
   download: true,
@@ -1246,7 +1222,7 @@ Papa.parse("data.csv", {
   skipEmptyLines: true,
   complete: function(results) {
     const data = results.data;
-    const plantFamilyCount = {};
+    const normalizedRows = [];
 
     data.forEach(row => {
       const normalized = {};
@@ -1257,10 +1233,7 @@ Papa.parse("data.csv", {
       const plantName = normalized["Name of Plant"];
       if (!plantName) return;
 
-      const family = normalized["Plant Family"];
-      if (family && family.toLowerCase() !== 'n/a') {
-        plantFamilyCount[family] = (plantFamilyCount[family] || 0) + 1;
-      }
+      normalizedRows.push(normalized);
 
       if (!plantMap[plantName]) {
         plantMap[plantName] = [];
@@ -1269,15 +1242,82 @@ Papa.parse("data.csv", {
     });
 
     populateDropdown();
-    buildPlantFamiliesChart(plantFamilyCount);
+    populateBrowseTable(normalizedRows);
+    updateStatsAndCharts(normalizedRows);
   },
   error: function() {
-    document.getElementById('plantFamiliesSummary').innerHTML =
-      '<p>Could not load <code>data.csv</code>. Place the file in the same folder as <code>index.html</code>.</p>';
-    document.getElementById('plantFamiliesRankingBody').innerHTML =
-      '<tr><td colspan="4">Failed to load data.</td></tr>';
+    const tbody = document.getElementById('tableBody');
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="7">Could not load data.csv. Make sure data.csv is in the same folder as index.html.</td></tr>';
+    }
   }
 });
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text == null ? '' : text;
+  return div.innerHTML;
+}
+
+function populateBrowseTable(rows) {
+  const tbody = document.getElementById('tableBody');
+  if (!tbody) return;
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="7">No entries found in data.csv.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td>${escapeHtml(r["Name of Plant"])}</td>
+      <td>${escapeHtml(r["Plant Family"])}</td>
+      <td>${escapeHtml(r["Name of Virus"])}</td>
+      <td>${escapeHtml(r["Virus Family"])}</td>
+      <td>${escapeHtml(r["Type of Extract"])}</td>
+      <td>${escapeHtml(r["Actve Compound"])}</td>
+      <td>${escapeHtml(r["Name of Author"])}</td>
+    </tr>
+  `).join('');
+}
+
+function updateStatsAndCharts(rows) {
+  const plantCount = new Set();
+  const virusCount = new Set();
+  const plantFamilyCount = {};
+  const virusFamilyCount = {};
+  const extractCount = {};
+  const compoundCount = {};
+  const virusCountMap = {};
+
+  rows.forEach(r => {
+    const plant = r["Name of Plant"];
+    const virus = r["Name of Virus"];
+    const pf = r["Plant Family"];
+    const vf = r["Virus Family"];
+    const ext = r["Type of Extract"];
+    const comp = r["Actve Compound"];
+
+    if (plant) plantCount.add(plant);
+    if (virus) {
+      virusCount.add(virus);
+      virusCountMap[virus] = (virusCountMap[virus] || 0) + 1;
+    }
+    if (pf) plantFamilyCount[pf] = (plantFamilyCount[pf] || 0) + 1;
+    if (vf) virusFamilyCount[vf] = (virusFamilyCount[vf] || 0) + 1;
+    if (ext) extractCount[ext] = (extractCount[ext] || 0) + 1;
+    if (comp) compoundCount[comp] = (compoundCount[comp] || 0) + 1;
+  });
+
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setText('plantCount', plantCount.size);
+  setText('virusCount', virusCount.size);
+  setText('statPlantCount', plantCount.size);
+  setText('statVirusCount', virusCount.size);
+  setText('statFamilyCount', Object.keys(plantFamilyCount).length);
+  setText('statVirusFamilyCount', Object.keys(virusFamilyCount).length);
+  setText('homeFamilyCount', Object.keys(plantFamilyCount).length);
+
+  initCharts(plantFamilyCount, virusFamilyCount, extractCount, compoundCount, virusCountMap);
+}
 
 function populateDropdown() {
   const dropdown = document.getElementById("plantDropdown");
