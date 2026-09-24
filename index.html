@@ -538,7 +538,7 @@
         <li><a href="#" onclick="showSection('basic-search'); return false;">Basic Search</a></li>
         <li><a href="#" onclick="showSection('statistics'); return false;">Statistics</a></li>
         <li><a href="#" onclick="showSection('browse'); return false;">Browse Database</a></li>
-        <li><a href="#">Virus Families</a></li>
+        <li><a href="#" onclick="showSection('virus-families'); return false;">Virus Families</a></li>
         <li><a href="#" onclick="showSection('plant-families'); return false;">Plant Families</a></li>
         <li><a href="#">Research Methods</a></li>
         <li><a href="#" onclick="showSection('publications'); return false;">Publications</a></li>
@@ -1065,6 +1065,176 @@
                 document.getElementById('plantFamiliesSummary').innerHTML =
                   '<p>Could not load <code>data.csv</code>. Place <code>data.csv</code> in the same folder as <code>index.html</code>.</p>';
                 document.getElementById('plantFamiliesRankingBody').innerHTML =
+                  '<tr><td colspan="4">Failed to load data.csv.</td></tr>';
+              }
+            });
+          })();
+          </script>
+        </div>
+
+        <!-- Virus Families Section -->
+        <div id="virus-families" class="content-section">
+          <h2>Virus Families</h2>
+          <p>Analysis based on the <strong>Virus Family</strong> column in <code>data.csv</code>.</p>
+
+          <div class="families-summary" id="virusFamiliesSummary">
+            Loading virus family statistics from data.csv...
+          </div>
+
+          <div class="chart-container plant-families-chart-container">
+            <div class="chart-title">Distribution of Virus families</div>
+            <div class="chart-subtitle">Pie chart of all virus families most affected by antiviral plants (Virus Family column, data.csv)</div>
+            <div class="chart-row">
+              <div class="chart-wrapper plant-families-chart-wrapper">
+                <canvas id="allVirusFamiliesChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="families-ranking">
+            <h3>Virus families most affected (decreasing order)</h3>
+            <p>All virus families ranked from highest to lowest number of entries in data.csv.</p>
+            <div class="table-wrapper">
+              <table class="families-ranking-table">
+                <thead>
+                  <tr>
+                    <th class="rank-col">Rank</th>
+                    <th>Virus Family</th>
+                    <th>Studies (entries)</th>
+                    <th>% of total entries</th>
+                  </tr>
+                </thead>
+                <tbody id="virusFamiliesRankingBody">
+                  <tr><td colspan="4">Loading ranking from data.csv...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <script>
+          (function() {
+            var virusFamiliesTabChart = null;
+
+            function vfEscapeHtml(text) {
+              var div = document.createElement('div');
+              div.textContent = text;
+              return div.innerHTML;
+            }
+
+            function vfGenerateColors(count) {
+              var colors = [];
+              for (var i = 0; i < count; i++) {
+                var hue = Math.round((i * 137.508 + 47) % 360);
+                colors.push('hsl(' + hue + ', 62%, 52%)');
+              }
+              return colors;
+            }
+
+            function vfRenderSummary(sortedFamilies, totalEntries) {
+              var familyCount = sortedFamilies.length;
+              var summaryEl = document.getElementById('virusFamiliesSummary');
+              var topFive = sortedFamilies.slice(0, 5).map(function(item, i) {
+                return (i + 1) + '. <strong>' + vfEscapeHtml(item[0]) + '</strong> (' + item[1] + ' entries)';
+              }).join('; ');
+
+              summaryEl.innerHTML =
+                '<p><strong>Number of virus families in this study: ' + familyCount + '</strong> ' +
+                '(unique values in the Virus Family column of data.csv).</p>' +
+                '<p>These families appear across <strong>' + totalEntries + ' database entries</strong> in total.</p>' +
+                '<p>The five virus families most affected by antiviral plants (decreasing order) are: ' + topFive + '.</p>';
+            }
+
+            function vfRenderRanking(sortedFamilies, totalEntries) {
+              var tbody = document.getElementById('virusFamiliesRankingBody');
+              if (!sortedFamilies.length) {
+                tbody.innerHTML = '<tr><td colspan="4">No virus family data found in data.csv.</td></tr>';
+                return;
+              }
+              tbody.innerHTML = sortedFamilies.map(function(item, index) {
+                var name = item[0];
+                var count = item[1];
+                var pct = ((count / totalEntries) * 100).toFixed(1);
+                return '<tr>' +
+                  '<td class="rank-col">' + (index + 1) + '</td>' +
+                  '<td>' + vfEscapeHtml(name) + '</td>' +
+                  '<td>' + count + '</td>' +
+                  '<td>' + pct + '%</td>' +
+                  '</tr>';
+              }).join('');
+            }
+
+            function vfBuildChart(virusFamilyCount) {
+              var canvas = document.getElementById('allVirusFamiliesChart');
+              if (!canvas) return;
+
+              var sorted = Object.keys(virusFamilyCount).map(function(name) {
+                return [name, virusFamilyCount[name]];
+              }).filter(function(item) {
+                return item[0] && item[0].toLowerCase() !== 'n/a';
+              }).sort(function(a, b) {
+                return b[1] - a[1];
+              });
+
+              var labels = sorted.map(function(item) { return item[0]; });
+              var values = sorted.map(function(item) { return item[1]; });
+              var totalEntries = values.reduce(function(sum, n) { return sum + n; }, 0);
+
+              vfRenderSummary(sorted, totalEntries);
+              vfRenderRanking(sorted, totalEntries);
+
+              if (virusFamiliesTabChart) {
+                virusFamiliesTabChart.destroy();
+              }
+
+              virusFamiliesTabChart = new Chart(canvas, {
+                type: 'pie',
+                data: {
+                  labels: labels,
+                  datasets: [{
+                    data: values,
+                    backgroundColor: vfGenerateColors(labels.length)
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: 'right',
+                      labels: { boxWidth: 10, font: { size: 9 }, padding: 4 }
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: function(ctx) {
+                          var total = ctx.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                          var pct = ((ctx.parsed / total) * 100).toFixed(1);
+                          return ctx.label + ': ' + ctx.parsed + ' entries (' + pct + '%)';
+                        }
+                      }
+                    }
+                  }
+                }
+              });
+            }
+
+            Papa.parse('data.csv', {
+              download: true,
+              header: true,
+              skipEmptyLines: true,
+              complete: function(results) {
+                var virusFamilyCount = {};
+                results.data.forEach(function(row) {
+                  var family = (row['Virus Family'] || '').trim();
+                  if (family && family.toLowerCase() !== 'n/a') {
+                    virusFamilyCount[family] = (virusFamilyCount[family] || 0) + 1;
+                  }
+                });
+                vfBuildChart(virusFamilyCount);
+              },
+              error: function() {
+                document.getElementById('virusFamiliesSummary').innerHTML =
+                  '<p>Could not load <code>data.csv</code>. Place <code>data.csv</code> in the same folder as <code>index.html</code>.</p>';
+                document.getElementById('virusFamiliesRankingBody').innerHTML =
                   '<tr><td colspan="4">Failed to load data.csv.</td></tr>';
               }
             });
